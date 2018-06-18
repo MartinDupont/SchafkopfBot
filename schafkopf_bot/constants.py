@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Feb  6 12:49:27 2018
-
-@author: martin
+All constants used for the schafkopf robot. Specifies which cards are in play,
+and which cards belong to which suits etc. for the different game modes. 
 """
 
 def reorder_dict(dic):
@@ -123,5 +122,5 @@ POINTS = {0 : ['S7', 'S8', 'S9', 'G7', 'G8', 'G9', 'H7' ,'H8' ,'H9' ,
           3 : ['SO', 'GO', 'HO', 'EO'],
           2 : ['SU', 'GU', 'HU', 'EU']}
 
-POINTS_REORDERED=reorder_dict(POINTS) ### misleading name.
+POINTS_REORDERED = reorder_dict(POINTS) ### misleading name.
 
