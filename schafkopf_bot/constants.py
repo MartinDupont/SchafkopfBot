@@ -20,8 +20,8 @@ ALL_CARDS = ['S7', 'S8', 'S9', 'S10', 'SK', 'SA', 'SU', 'SO',
              'E7', 'E8', 'E9', 'E10', 'EK', 'EA', 'EU', 'EO']
 
 GAME_MODES = ['Ramsch', 'Herz Solo', 'Schellen Solo', 'Eichel Solo',
-              'Gras Solo', 'Wenz', 'Normale Schellen', 'Normale Eichel',
-              'Normale Gras']
+              'Gras Solo', 'Wenz', 'Partner Schellen', 'Partner Eichel',
+              'Partner Gras']
 
 # ================= Suit Classification for all Game Modes ================== #
 
@@ -64,11 +64,10 @@ SUITS_MAPPING = {'Wenz'            : reorder_dict(WENZ_SUITS),
                  'Gras Solo'       : reorder_dict(GRAS_SOLO_SUITS),
                  'Eichel Solo'     : reorder_dict(EICHEL_SOLO_SUITS),
                  'Schellen Solo'   : reorder_dict(SCHELLEN_SOLO_SUITS),
-                 'Normale Schellen': STANDARD_MAPPING,
-                 'Normale Gras'    : STANDARD_MAPPING,
-                 'Normale Eichel'  : STANDARD_MAPPING,
-                 'Ramsch'          : STANDARD_MAPPING,
-                 None              : STANDARD_MAPPING}
+                 'Partner Schellen': STANDARD_MAPPING,
+                 'Partner Gras'    : STANDARD_MAPPING,
+                 'Partner Eichel'  : STANDARD_MAPPING,
+                 'Ramsch'          : STANDARD_MAPPING}
  
 # ========================== Miscellaneous ================================== #
        
@@ -76,11 +75,9 @@ GAME_MODE_TO_ACES = {'Normale Schellen': 'SA', 'Normale Eichel': 'EA',
                      'Normale Gras': 'GA'}
 
 
-#SUIT_TO_CODE={'Schellen':'S','Gras':'G','Eichel':'E','Herz':'H'}
-
 GAME_PRIORITY = {'Herz Solo': 1, 'Gras Solo': 1, 'Eichel Solo': 1,
-                 'Schellen Solo': 1, 'Wenz': 2, 'Normale Schellen': 3,
-                 'Normale Eichel': 3, 'Normale Gras': 3}
+                 'Schellen Solo': 1, 'Wenz': 2, 'Partner Schellen': 3,
+                 'Partner Eichel': 3, 'Partner Gras': 3}
 
 NORMAL_ORDERING = ['7', '8', '9', 'K', '10', 'A']
 WENZ_ORDERING = ['7', '8', '9', 'O', 'K', '10', 'A']
@@ -109,18 +106,35 @@ TRUMP_ORDERINGS = {'Wenz'            : WENZ_TRUMP_ORDERING,
 # ============================ Points ======================================= #
 
 
-#TRUMPS_NORMAL=['H7','H8','H9','H10','HK','HA','HU','HO',
-#           'SU','SO','GU','GO','EU','EO'] ##### Do i even use this????????????
+POINTS_REORDERED = {0 : ['S7', 'S8', 'S9', 'G7', 'G8', 'G9', 'H7' ,'H8' ,'H9' ,
+                         'E7', 'E8', 'E9'],
+                    11: ['SA', 'GA', 'HA', 'EA'],
+                    10: ['S10', 'G10', 'H10', 'E10'],
+                    4 : ['SK', 'GK', 'HK', 'EK'],
+                    3 : ['SO', 'GO', 'HO', 'EO'],
+                    2 : ['SU', 'GU', 'HU', 'EU']}
 
+POINTS = reorder_dict(POINTS_REORDERED)
 
+# ========================== Abstract Factory =============================== #
 
-POINTS = {0 : ['S7', 'S8', 'S9', 'G7', 'G8', 'G9', 'H7' ,'H8' ,'H9' ,
-               'E7', 'E8', 'E9'],
-          11: ['SA', 'GA', 'HA', 'EA'],
-          10: ['S10', 'G10', 'H10', 'E10'],
-          4 : ['SK', 'GK', 'HK', 'EK'],
-          3 : ['SO', 'GO', 'HO', 'EO'],
-          2 : ['SU', 'GU', 'HU', 'EU']}
+def constants_factory(game_mode):
+    """Different game modes will have different trump cards, different suits,
+    and different orderings. This function yields the correct constants 
+    for a given game."""
+    
+    if game_mode == "Wenz":
+        card_ordering = WENZ_ORDERING
+    else:
+        card_ordering = NORMAL_ORDERING
+        
+    trump_ordering = TRUMP_ORDERINGS[game_mode]
+    
+    try:
+        called_ace = GAME_MODE_TO_ACES[game_mode]
+    except KeyError:
+        called_ace = None
 
-POINTS_REORDERED = reorder_dict(POINTS) ### misleading name.
-
+    suit_dictionary = SUITS_MAPPING[game_mode]
+    
+    return card_ordering, trump_ordering, called_ace, suit_dictionary

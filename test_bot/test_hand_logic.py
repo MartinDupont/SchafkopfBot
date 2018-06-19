@@ -7,7 +7,7 @@ Created on Mon Jun 18 17:28:46 2018
 
 import unittest
 
-import schafkopf_bot as sb
+from context import schafkopf_bot as sb
 
 class CheckDavonlaufen(unittest.TestCase):
     def setUp(self):
