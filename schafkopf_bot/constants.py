@@ -71,8 +71,8 @@ SUITS_MAPPING = {'Wenz'            : reorder_dict(WENZ_SUITS),
  
 # ========================== Miscellaneous ================================== #
        
-GAME_MODE_TO_ACES = {'Normale Schellen': 'SA', 'Normale Eichel': 'EA',
-                     'Normale Gras': 'GA'}
+GAME_MODE_TO_ACES = {'Partner Schellen': 'SA', 'Partner Eichel': 'EA',
+                     'Partner Gras': 'GA'}
 
 
 GAME_PRIORITY = {'Herz Solo': 1, 'Gras Solo': 1, 'Eichel Solo': 1,
@@ -99,9 +99,9 @@ TRUMP_ORDERINGS = {'Wenz'            : WENZ_TRUMP_ORDERING,
                    'Eichel Solo'     : EICHEL_TRUMP_ORDERING,
                    'Schellen Solo'   : SCHELLEN_TRUMP_ORDERING,
                    'Ramsch'          : NORMAL_TRUMP_ORDERING,
-                   'Normale Schellen': NORMAL_TRUMP_ORDERING,
-                   'Normale Gras'    : NORMAL_TRUMP_ORDERING,
-                   'Normale Eichel'  : NORMAL_TRUMP_ORDERING}
+                   'Partner Schellen': NORMAL_TRUMP_ORDERING,
+                   'Partner Gras'    : NORMAL_TRUMP_ORDERING,
+                   'Partner Eichel'  : NORMAL_TRUMP_ORDERING}
 
 # ============================ Points ======================================= #
 
