@@ -7,27 +7,33 @@ Created on Tue Jun 19 12:42:28 2018
 
 import random
 import copy
+import numpy as np
 import constants as con
 
 class DumbBot:
     def __init__(self, hand):
+        self.hand = None
+        
+    def make_state_vector(self, input_state):
+        """Accepts linearized numpy array from the Arena. Appends its own vectorized
+        hand to the input_state"""
+        state_vector = np.append(input_state, self.hand)
+        return state_vector
+    
+    def reset(self):
+        self.hand = None
+
+    def give_hand(self, hand):
+        # Perhaps I want to have polymorphism here or whatever. Can accept
+        # either a list of strings or a vector. 
         if not all([a in con.ALL_CARDS for a in hand]):
             raise ValueError("These aren't valid cards")
         else:
-            self.hand = copy.deepcopy(hand)
-        
-        self.current_suit = None
-        self.played_this_round = []
-        self.played_this_game = []
-        
-    @property
-    def game_mode(self):
-        return self._game_mode
+            self.hand = con.cards_2_vec(hand)      
+            
+class GameModeBot(DumbBot):
+    def __init__(self):
+        pass
+    # Make the robot only learn on games in which they actually play the 
+    # game mode that he selected (1st approximation)
     
-    @game_mode.setter
-    def game_mode(self, value):
-        if value in con.GAME_MODES:
-            self._game_mode = value
-            junk1, junk2, self.called_ace, self.suits_mapping = con.constants_factory(value)
-        else:
-            raise ValueError("{} is not a valid game mode".format(value))

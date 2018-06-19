@@ -3,6 +3,7 @@
 All constants used for the schafkopf robot. Specifies which cards are in play,
 and which cards belong to which suits etc. for the different game modes. 
 """
+import numpy as np
 
 def reorder_dict(dic):
     out = {}
@@ -115,6 +116,24 @@ POINTS_REORDERED = {0 : ['S7', 'S8', 'S9', 'G7', 'G8', 'G9', 'H7' ,'H8' ,'H9' ,
                     2 : ['SU', 'GU', 'HU', 'EU']}
 
 POINTS = reorder_dict(POINTS_REORDERED)
+# ====================== Card-Vector Translation ============================ #
+
+card_vec_dict = {card: i for i, card in enumerate(ALL_CARDS)}
+vec_card_dict = {i: card for i, card in enumerate(ALL_CARDS)}
+
+def cards_2_vec(card_list):
+    out = np.zeros(32, dtype=int)
+    for c in card_list:
+        index = card_vec_dict[c]
+        out[index] = 1
+    return out
+    
+def vec_2_cards(vector):
+    out = []
+    nonzero = np.where(vector)[0]
+    for i in nonzero:
+        out += [vec_card_dict[i]]
+    return out
 
 # ========================== Abstract Factory =============================== #
 
@@ -138,3 +157,9 @@ def constants_factory(game_mode):
     suit_dictionary = SUITS_MAPPING[game_mode]
     
     return card_ordering, trump_ordering, called_ace, suit_dictionary
+
+
+def make_play_order(i):
+    return [(i + j) % 4 for j in range(4)]
+    
+    
