@@ -19,7 +19,7 @@ from random import shuffle
 class Arena:
     def __init__(self):
         # placeholder for players
-        self.game_state = np.zeros((4,4, 8, 32), dtype=int)
+        self.game_state = np.zeros((4, 4, 8, 32), dtype=int)
         # This encoding does keep track of play order, although it is a little sparse
         self.game_mode = None # should be a one-hot encoding of lenght(game_modes)
         self.whos_playing = None # should be a binary vector of length 4
@@ -31,46 +31,10 @@ class Arena:
         self.player_points = {0:0, 1:0, 2:0, 3:0}
         
     def new_game(self):
-        self.round = 0
-        self.game_state = np.zeros((4, 4, 8, 32), dtype=int)
-        self.player_points = {0:0, 1:0, 2:0, 3:0}
-        self.comes_out = (self.comes_out + 1) % 4
-        shuffle(self.deck)
-        count = 0
-        for p in self.players:
-            p.reset()
-            hand = self.deck[count:count+8]
-            p.give_hand(hand)
-            count += 8
-        
-        for i in range(4):
-            ind = i + self.comes_out
-            self.players[ind].play_or_not()
-            # This function needs two steps. A bot needs to calculate if he
-            # wants to play, and what he wants to play with. But the two facts
-            # need to be yielded separately. 
-        
-        self.game_mode = thing
-        self.whos_playing = other_thing
-        
-        card_ordering, trump_ordering, called_ace, suit_dictionary = con.constants_factory(self.game_mode)
-        #feed these to the bots
+        raise NotImplementedError()
         
     def play_round(self):
-        # the continuous playing loop should not be done here. 
-        for i,p in enumerate(self.play_order):
-            player = self.players[p]
-            card_num = player.play_card(self.make_state_vector(p))
-            self.game_state[i, p, self.round, card_num] = 1
-        
-        winner, points = self.calculate_round_winner(self.game_state, self.round)
-        self.player_points[winner] += points
-        self.play_order = con.make_play_order(winner)
-        
-        self.round += 1
-        if self.round == 8:
-            self.calculate_game_winner()
-            # self.new_game()
+        raise NotImplementedError()
             
         
     def make_state_vector(self, player_num):
@@ -154,9 +118,73 @@ class Arena:
 
         
 
-class HumanInterface:
-    def __init__(self):
-        pass
+class HumanInterface(Arena):
+    def __init__(self, bot, p=0):
+        self.players[p] = DumbBot()
+        for i in range(4):
+            if i != p:
+                self.players[i] = ProxyBot()
+        
+    # must override player initializaition.
+    # and new_game, because we can't deal out peoples cards
+    # play_round must be altered to print out what the bot is doing. 
+    
+    def new_game(hand , p=0):
+        for i in range(4):
+            self.players[i].give_hand(hand)
+                # None of the ProxyBot's methods should actually check what hand he has....
+        
+
+class AllRobots(Arena):
+    def __init__():
+        super()__init__()
+        self.players = {i:DumbBot() for i in range(4)}
+        
+    def new_game(self):
+        self.round = 0
+        self.game_state = np.zeros((4, 4, 8, 32), dtype=int)
+        self.player_points = {0:0, 1:0, 2:0, 3:0}
+        self.comes_out = (self.comes_out + 1) % 4
+        shuffle(self.deck)
+        count = 0
+        for p in self.players:
+            p.reset()
+            hand = self.deck[count:count+8]
+            p.give_hand(hand)
+            count += 8
+        
+        for i in range(4):
+            ind = i + self.comes_out
+            self.players[ind].play_or_not()
+            # This function needs two steps. A bot needs to calculate if he
+            # wants to play, and what he wants to play with. But the two facts
+            # need to be yielded separately. 
+        
+        self.game_mode = thing
+        self.whos_playing = other_thing
+        
+        card_ordering, trump_ordering, called_ace, suit_dictionary = con.constants_factory(self.game_mode)
+        #feed these to the bots
+        
+    def play_round(self):
+        # the continuous playing loop should not be done here. 
+        for i,p in enumerate(self.play_order):
+            player = self.players[p]
+            card_num = player.play_card(self.make_state_vector(p))
+            self.game_state[i, p, self.round, card_num] = 1
+        
+        winner, points = self.calculate_round_winner(self.game_state, self.round)
+        self.player_points[winner] += points
+        self.play_order = con.make_play_order(winner)
+        
+        self.round += 1
+        if self.round == 8:
+            self.calculate_game_winner()
 
     # Need something which is capable of setting up a single bot and letting
     # me put in commands manually.
+    
+    
+class SimulationArena(Arena):
+    # like arena, but can start playing rounds when halfway through. 
+    

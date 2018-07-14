@@ -10,10 +10,10 @@ import copy
 import numpy as np
 import constants as con
 
-class DumbBot:
-    def __init__(self, hand):
+class BaseBot():
+    def __init__(self):
         self.hand = None
-        
+
     def make_state_vector(self, input_state):
         """Accepts linearized numpy array from the Arena. Appends its own vectorized
         hand to the input_state"""
@@ -33,7 +33,20 @@ class DumbBot:
         if not all([a in con.ALL_CARDS for a in hand]):
             raise ValueError("These aren't valid cards")
         else:
-            self.hand = con.cards_2_vec(hand)      
+            self.hand = con.cards_2_vec(hand) 
+            
+            
+    def aces_in_hand(self):
+        return [a for a in self.hand if a[1] == 'A']
+
+    def set_game_mode(self, game_mode):
+        if not game_mode in con.GAME_MODES:
+            raise ValueError("{} is not a valid game mode".format(game_mode))
+        self.card_ordering, self.trump_ordering, self.called_ace, self.suit_dictionary = con.constants_factory(game_mode)
+ 
+# =========================================================================== # 
+class DumbBot(BaseBot):
+
             
     def play_or_not(self):
         options = ['spiele', 'spiele nicht']
@@ -49,13 +62,6 @@ class DumbBot:
         return random.choice(['Wenz', 'Herz Solo', 'Gras Solo', 'Eichel Solo',
                               'Schellen Solo'] + temp + temp + temp) 
     
-    def aces_in_hand(self):
-        return [a for a in self.hand if a[1]=='A']
-
-    def set_game_mode(self, game_mode):
-        if not game_mode in con.GAME_MODES:
-            raise ValueError("{} is not a valid game mode".format(game_mode))
-        self.card_ordering, self.trump_ordering, self.called_ace, self.suit_dictionary = con.constants_factory(game_mode)
         
     #---------------------------------------------------------------------
     def calculate_legal_moves(self, game_state, round_num):
@@ -66,10 +72,10 @@ class DumbBot:
         if len(self.hand) == 1:
             return self.hand   
         
-        MatchingCards = [card for card in self.hand if self.getSuits(card) == self.currentSuit]
+        matching_cards = [card for card in self.hand if self.getSuits(card) == self.currentSuit]
         # If I can't match the suit, play whatever. Also works if I'm coming out.
-        if not(MatchingCards):
-            MatchingCards = self.hand
+        if not(matching_cards):
+            matching_cards = self.hand
         
         # check if we're playing a partner game, and I have the called ace. 
         if self.gameMode in ['Partner Schellen','Partner Eichel','Partner Gras'] and (con.GAME_MODE_TO_ACES[self.gameMode] in self.hand): ## if we're doing a partner play
@@ -81,7 +87,7 @@ class DumbBot:
                     return [called_ace]
                 else: 
                     # play any valid card that isn't the ace
-                    return [card  for card in MatchingCards if card != called_ace] 
+                    return [card  for card in matching_cards if card != called_ace] 
             else: 
                 # If i am allowed to come out.
                 if len([card for card in self.hand if self.getSuits(card) == called_colour]) >= 4:
@@ -92,15 +98,15 @@ class DumbBot:
                     return [card  for card in self.hand if 
                             (card == called_ace) or (self.getSuits(card) != called_colour)]  
             
-        return MatchingCards
+        return matching_cards
 
        
                 
-    def playCard(self):
+    def play_card(self):
         play = self.playRandom()
         return play
 
-    def playRandom(self): 
+    def play_random(self): 
         # This still assumes that the hand is a list not a vector
         if self.gameMode == None:
             print('we havent set the gamemode yet!')
@@ -115,7 +121,7 @@ class DumbBot:
         self.currentSuit == None
         return play  
     
-    def forcePlay(self,card):
+    def force_play(self,card):
         # TODO: This still assumes that the hand is a list not a vector.
         if not (card in self.hand):
             print('That card is not in my hand')
@@ -125,7 +131,19 @@ class DumbBot:
         self.hand.remove(card) 
     
         return card    
-            
+ 
+
+class ProxyBot(BaseBot):
+    
+    def play_card(self, state):
+        # figure out from the state what his player number is.
+        play = input("Which card would you like to play?: ")
+        if not play in con.ALL_CARDS:
+            raise ValueError("{} is not a valid card")
+
+
+
+           
 class GameModeBot(DumbBot):
     def __init__(self):
         pass

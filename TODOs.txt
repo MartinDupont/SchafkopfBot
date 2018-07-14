@@ -2,4 +2,18 @@
 
 * merge TRUMP_ORDERING and normal _CARD_ORDERINGS with just a single ordering. duh. 
 
-* Find a good way of representing the game state as a matrix. 
+* Figure out how to make a human-operable interface
+
+* Bot vs Humans should be a series of command_line inputs
+ * The Human interface should inherit from the Arena, to not repeat myself
+* Put in dummy bots whose play_card() function takes a user input.
+
+* I need a bot base class, proxyBot inherits too much crap from DumbBot.
+
+* Probably need an Arena base class too. 
+
+* Figure out the way of organizing function calls as to minimize the amount of time spent switching between matrix and string reps. 
+
+* Separate contsants.py and move functions to utils.py
+
+* make sketch code for a play loop for each mode. 
