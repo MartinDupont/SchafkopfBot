@@ -28,10 +28,12 @@ class Arena:
         self.players = None #Some object which stores players. Make a bunch of players
         self.deck = copy.deepcopy(con.ALL_CARDS)
         self.comes_out = 0
+        self.player_points = {0:0, 1:0, 2:0, 3:0}
         
     def new_game(self):
         self.round = 0
         self.game_state = np.zeros((4, 4, 8, 32), dtype=int)
+        self.player_points = {0:0, 1:0, 2:0, 3:0}
         self.comes_out = (self.comes_out + 1) % 4
         shuffle(self.deck)
         count = 0
@@ -52,20 +54,24 @@ class Arena:
         self.whos_playing = other_thing
         
         card_ordering, trump_ordering, called_ace, suit_dictionary = con.constants_factory(self.game_mode)
+        #feed these to the bots
         
     def play_round(self):
-        for i,p in enumerate(play_order):
+        # the continuous playing loop should not be done here. 
+        for i,p in enumerate(self.play_order):
             player = self.players[p]
             card_num = player.play_card(self.make_state_vector(p))
             self.game_state[i, p, self.round, card_num] = 1
         
-        winner = self.calculate_round_winner(self.game_state)
-        play_order = con.make_play_order(winner)
+        winner, points = self.calculate_round_winner(self.game_state, self.round)
+        self.player_points[winner] += points
+        self.play_order = con.make_play_order(winner)
         
         self.round += 1
         if self.round == 8:
             self.calculate_game_winner()
-            self.new_game()
+            # self.new_game()
+            
         
     def make_state_vector(self, player_num):
         # gotta figure out whether I want player_num to be actual number 
@@ -75,22 +81,78 @@ class Arena:
         state_vector = np.concatenate((linearized, self.game_mode, self.whos_playing))
         return state_vector
         
-        
-    def calculate_round_winner(self, round_num):
-        cards_played = self.game_state[:, :, round_num, :]
-        if np.sum(cards_played) != 4:
-            raise ValueError("Round {} has not been played to completion".format(round_num))
-        thing = np.where(np.sum(cards_played, axis =2))
-        # I'm probably going to be doing the conversion from array to strings alot
-        # This should be turned into a standalone function...
+    
+    def round_representation(game_state, round_num):
+        # should these be inside or outside the class?
+        cards_played = game_state[:, :, round_num, :]
+        thing= np.where(np.sum(cards_played, axis =2))
         thing_2 = [(i,j,con.vec_2_cards(cards_played[i, j]))
-                    for i,j in zip(*thing)]
+                for i,j in zip(*thing)]
         
-        pass
+        thing_3 = sorted(thing_2, key=lambda x: x[0])
+        
+        readable_cards_played = [(b, c) for a, b, c in thing_3]
+        return readable_cards_played
+
+    def game_representation(game_state):
+        rep = dict()
+        for i in range(1, 9):
+            rep[i] = self.round_representation(game_state, i-1)
+        return rep
+
+
+        
+    def calculate_round_winner(self, round_num):        
+        readable_cards_played = self.round_representation(self.game_state, round_num)
+        if len(readable_cards_played) != 4:
+            raise ValueError("Round {} has not been played to completion".format(round_num))
+            
+        # gotta check if it's (player,card) or (card, player)
+        
+        suit = self.suit_dictionary[readable_cards_played[0][0]]
+
+        trumps = [tup for tup in 
+                  readable_cards_played if self.suit_dictionary[tup[0]] == "Truempfe"]
+
+        if trumps:
+            winning_player =  sorted(trumps, key=lambda x:
+                            self.trump_ordering.index(x[0]),reverse=True)[0][1]
+            # extract the player number
+        else:
+            # If no trumps, the highest card matching the suit will win. 
+            correct_suit_cards = [tup for tup in readable_cards_played
+                                  if self.suit_dictionary[tup[0]] == suit]
+            winning_player = sorted(correct_suit_cards, key= lambda x:
+                self.card_ordering.index(x[1::]), reverse=True)[0][1] 
+            
+        points = sum(con.Points[c] for c, p in readable_cards_played)
+        return winning_player, points
+        
+        
     
     def calculate_game_winner(self):
-        pass
+        offensive_team = self.whos_playing
+        defensive_team = [p for p in range(4) if not p in offensive_team]
 
+        offensive_points = 0    
+        defensive_points = 0
+
+        for p, points in self.player_points:
+            if p in offensive_team:
+                offensive_points += points
+#            else:
+#                defensive_points += points
+        
+        if offensive_points >= 61:
+            return offensive_team
+        else:
+            return defensive_team
+        # This actually needs way more work.
+        # For now, I can just do a win/lose, but ideally, I want to win  
+        # and lose by a certain number of points, AND i want laufenden and haxen etc. 
+
+
+        
 
 class HumanInterface:
     def __init__(self):

@@ -12,7 +12,7 @@ from context import schafkopf_bot as sb
 class CheckDavonlaufen(unittest.TestCase):
     def setUp(self):
         self.bot = sb.DumbBot()
-        self.bot.gamemode = "normale Eichel"
+        self.bot.gamemode = "Partner Eichel"
         self.bot.hand = ["E7","E8", "E9" ,"EA","S7"]
     
     def test_open_davonlaufen(self):

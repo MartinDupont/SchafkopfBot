@@ -1,9 +1,5 @@
 * Find out how to properly create a folder structure for the bot package. 
 
-* The different orderings and suit mappings are crying out for the factory pattern. Return a "GAME_CONSTANTS" object.
-
-* Replace setGameMode with a setter property. 
-
 * merge TRUMP_ORDERING and normal _CARD_ORDERINGS with just a single ordering. duh. 
 
 * Find a good way of representing the game state as a matrix. 
