@@ -1,0 +1,286 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Jul 26 15:59:16 2018
+
+@author: martin
+"""
+
+from typing import NamedTuple
+import constants as con
+import copy
+
+
+class GameState(NamedTuple('GameState', [('game_mode', str), ('offensive_team', int),
+                                         ('active', int),("history",str) ], ("player_points",int))):
+    """
+
+    Subclassing NamedTuple makes the states (effectively) immutable
+    and hashable. Using immutable states can help avoid errors that
+    can arise with in-place state updates. Hashable states allow the
+    state to be used as the key to a look up table.
+    
+    history = "1H9_2E103HU_" 
+
+    """
+    def __new__(cls, history="", game_mode="", offensive_team=(None, None), active=None):
+        if not game_mode in con.ALL_GAME_MODES:
+            raise ValueError("{} is not a valid game mode".format(game_mode))
+
+        return super(GameState, cls).__new__(cls, game_mode, offensive_team, active, history)
+
+    # ------------------------ Helper Functions ----------------------------- #
+    def get_current_round(self):
+        start, _ = divmod(len(self.history), 16) * 16 # is 4*4
+        return self.history[start:]
+    
+    def get_round_number(self):
+        round_num, _ = divmod(len(self.history), 16) # is 4*4
+        return round_num
+
+    def split_by_stride(self, input_string, stride = 4):
+        ind = 0
+        out = []
+        while not ind >= len(input_string):
+            out += [input_string[ind,ind+stride]]
+            ind += stride
+        return out
+    
+    def player_card_tuples(self, input_string):
+        ind = 0
+        out = []
+        while not ind >= len(input_string):
+            out += [(input_string[ind], input_string[ind+1,ind+4])]
+            ind += 4
+        return out
+    # ----------------------------------------------------------------------- # 
+        
+    def actions(self, hand):
+        """Get available actions for a player given his hand. 
+        
+        Returns
+        -------
+        list 
+             a list of available cards to be played, as strings. """
+        if len(hand) == 1:
+            return hand   
+        
+        current_round = self.get_current_round()
+        _, _, called_ace, suit_dictionary = con.constants_factory(self.game_mode)
+        
+        
+        current_suit = suit_dictionary[current_round[1:]] 
+        
+        matching_cards = [card for card in hand if suit_dictionary[card] == current_suit]
+        # If I can't match the suit, play whatever. Also works if I'm coming out, if current_suit is None.
+        if not(matching_cards):
+            matching_cards = copy.deepcopy(hand) # paranoid.
+        
+        # check if we're playing a partner game, and I have the called ace. 
+        # If we're not doing partner play, called_ace is None
+        if called_ace in hand: 
+            called_colour = suit_dictionary[called_ace]
+            if current_round:
+                # Someone has played a card before me, I'm not coming out.
+                if current_suit == called_colour:
+                    # play the ace if I have it
+                    return [called_ace]
+                else: 
+                    # play any valid card that isn't the ace
+                    return [card  for card in matching_cards if card != called_ace]
+                
+            else: 
+                # If i am allowed to come out.
+                if len([card for card in hand if suit_dictionary[card] == called_colour]) >= 4:
+                    # can "run away" and not open with the ace. 
+                    return self.hand
+                else:
+                    # Can open with the called ace, but not any other card of the called colour
+                    return [card  for card in self.hand if 
+                            (card == called_ace) or (suit_dictionary[card] != called_colour)]  
+
+        return matching_cards
+
+
+    # -------------------------------------------------
+    def result(self, action):
+        """ Return the resulting game state after applying the action specified
+        to the current game state.
+
+        Note that players can choose any open cell on the opening move,
+        but all later moves MUST be one of the values in Actions.
+
+        Parameters
+        ----------
+        action : str
+            A string indicating the card played by the active player.
+
+        Returns
+        -------
+        GameState
+            A new state object with the input move applied.
+        """
+        new_history = self.history+str(self.active)+action
+        game_mode = self.game_mode
+        offensive_team = self.offensive_team
+        if len(self.history) % 16 == 0:
+            round_string = self.history[-16:]
+            new_active, points = self.calculate_round_winner(round_string)
+            player_points = tuple(p if i != new_active else p + points for i, p in enumerate(self.player_points))
+        else:
+            new_active = (self.new_active + 1) % 4
+            player_points = self.player_points
+            
+        return GameState(history= new_history, active= new_active,
+                         game_mode = game_mode, offensive_team=offensive_team, player_points=player_points)
+        
+        
+    def calculate_round_winner(self, round_string):        
+        if len(round_string) != 16:
+            raise ValueError("Round has not been played to completion.")
+            
+        card_ordering, trump_ordering, called_ace, suit_dictionary = con.constants_factory(game_mode)
+            
+        readable = self.player_card_tuples(round_string)
+        suit = suit_dictionary[round_string[1:4]] # suit of first card played
+
+        trumps = [tup for tup in 
+                  readable if suit_dictionary[tup[1]] == "Truempfe"]
+
+        if trumps:
+            winning_player =  sorted(trumps, key=lambda x:
+                            trump_ordering.index(x[1]),reverse=True)[0][1]
+            # extract the player number
+        else:
+            # If no trumps, the highest card matching the suit will win. 
+            correct_suit_cards = [tup for tup in readable
+                                  if suit_dictionary[tup[1]] == suit]
+            winning_player = sorted(correct_suit_cards, key= lambda x:
+                card_ordering.index(x[1::]), reverse=True)[0][1] 
+            
+        points = sum(con.POINTS[c] for p, c in readable)
+        return winning_player, points
+    # -------------------------------------------------   
+
+    def terminal_test(self):
+        """ Return True if either player has no legal moves, otherwise False
+
+        Returns
+        -------
+        bool
+            True if either player has no legal moves, otherwise False
+        """
+        if len(self.history) == 256: # is 32*4
+            return True
+        elif (len(self.history)) < 256:
+            return False
+        else:
+            raise ValueError("Someone tried to play past the end of the game")
+          
+    
+    def utilities(self):
+        """ 
+        Returns
+        -------
+        tuple
+            A tuple containing the utility value of the current game state for 
+            all players. The game has a utility of +1 if the player has won,
+            a value of -1 if the player has lost, and a value of 0
+            otherwise.
+        """
+        if not self.terminal_test():
+            return (0, 0, 0, 0)
+
+        #defensive_team = [p for p in range(4) if not p in self.offensive_team]
+
+        offensive_points = 0    
+        #defensive_points = 0
+
+        for p, points in enumerate(self.player_points):
+            if p in self.offensive_team:
+                offensive_points += points
+#            else:
+#                defensive_points += points
+        
+        if offensive_points >= 61:
+            return tuple(1 if i in self.offensive_team else -1 for i in range(4))
+        else:
+            return  tuple(1 if i in self.offensive_team else -1 for i in range(4))
+        # This actually needs way more work.
+        # For now, I can just do a win/lose, but ideally, I want to win  
+        # and lose by a certain number of points, AND i want laufenden and haxen etc. 
+        
+        
+
+
+#class DebugState(Isolation):
+#    """ Extend the Isolation game state class with utility methods for debugging &
+#    visualizing the fields in the data structure
+#
+#    Examples
+#    --------
+#    >>> board = Isolation()
+#    >>> debug_board = DebugBoard.from_state(board)
+#    >>> print(debug_board.bitboard_string)
+#    11111111111001111111111100111111111110011111111111001111111111100111111111110011111111111
+#    >>> print(debug_board)
+#
+#    + - + - + - + - + - + - + - + - + - + - + - +
+#    |   |   |   |   |   |   |   |   |   |   |   |
+#    + - + - + - + - + - + - + - + - + - + - + - +
+#    |   |   |   |   |   |   |   |   |   |   |   |
+#    + - + - + - + - + - + - + - + - + - + - + - +
+#    |   |   |   |   |   |   |   |   |   |   |   |
+#    + - + - + - + - + - + - + - + - + - + - + - +
+#    |   |   |   |   |   |   |   |   |   |   |   |
+#    + - + - + - + - + - + - + - + - + - + - + - +
+#    |   |   |   |   |   |   |   |   |   |   |   |
+#    + - + - + - + - + - + - + - + - + - + - + - +
+#    |   |   |   |   |   |   |   |   |   |   |   |
+#    + - + - + - + - + - + - + - + - + - + - + - +
+#    |   |   |   |   |   |   |   |   |   |   |   |
+#    + - + - + - + - + - + - + - + - + - + - + - +
+#    """
+#    player_symbols=['1', '2']
+#    
+#    @staticmethod
+#    def from_state(gamestate): return DebugState(gamestate.board, gamestate.ply_count, gamestate.locs)
+#
+#    @property
+#    def bitboard_string(self): return "{:b}".format(self.board)
+#
+#    @classmethod
+#    def ind2xy(cls, ind):
+#        """ Convert from board index value to xy coordinates
+#
+#        The coordinate frame is 0 in the bottom right corner, with x increasing
+#        along the columns progressing towards the left, and y increasing along
+#        the rows progressing towards teh top.
+#        """
+#        return (ind % (_WIDTH + 2), ind // (_WIDTH + 2))
+#
+#    def __str__(self):
+#        """ Generate a string representation of the current game state, marking
+#        the location of each player and indicating which cells have been blocked,
+#        and which remain open.
+#        """
+#        import os
+#        from io import StringIO
+#        OPEN = " "
+#        CLOSED = "X"
+#        cell = "| {} "
+#        rowsep = "+ - " * _WIDTH + "+"
+#        out = StringIO()
+#        out.write(rowsep + os.linesep)
+#
+#        board = self.board << 2
+#        for loc in range(_SIZE + 2):
+#            if loc > 2 and loc % (_WIDTH + 2) == 0:
+#                out.write("|" + os.linesep + rowsep + os.linesep)
+#            if loc % (_WIDTH + 2) == 0 or loc % (_WIDTH + 2) == 1:
+#                continue
+#            sym = OPEN if (board & (1 << loc)) else CLOSED
+#            if loc - 2 == self.locs[0]: sym = self.player_symbols[0]
+#            if loc - 2 == self.locs[1]: sym = self.player_symbols[1]
+#            out.write(cell.format(sym))
+#        out.write("|" + os.linesep + rowsep + os.linesep)
+#        return '\n'.join(l[::-1] for l in out.getvalue().split('\n')[::-1]) + os.linesep

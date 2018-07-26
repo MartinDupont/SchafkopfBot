@@ -15,6 +15,7 @@ class BaseBot():
         self.hand = None
 
     def make_state_vector(self, input_state):
+        
         """Accepts linearized numpy array from the Arena. Appends its own vectorized
         hand to the input_state"""
         state_vector = np.append(input_state, self.hand)
@@ -40,6 +41,7 @@ class BaseBot():
         return [a for a in self.hand if a[1] == 'A']
 
     def set_game_mode(self, game_mode):
+        #TODO: this should probably be shifted to the State.
         if not game_mode in con.GAME_MODES:
             raise ValueError("{} is not a valid game mode".format(game_mode))
         self.card_ordering, self.trump_ordering, self.called_ace, self.suit_dictionary = con.constants_factory(game_mode)
@@ -67,6 +69,8 @@ class DumbBot(BaseBot):
     def calculate_legal_moves(self, game_state, round_num):
         
         # need access to round_representation here 
+        # all of this internal shit, card_ordering, trump_ordering, should
+        # go in the state and get pulled from the state when needed. 
         
         
         if len(self.hand) == 1:

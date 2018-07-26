@@ -66,54 +66,7 @@ class Arena:
 
 
         
-    def calculate_round_winner(self, round_num):        
-        readable_cards_played = self.round_representation(self.game_state, round_num)
-        if len(readable_cards_played) != 4:
-            raise ValueError("Round {} has not been played to completion".format(round_num))
-            
-        # gotta check if it's (player,card) or (card, player)
-        
-        suit = self.suit_dictionary[readable_cards_played[0][0]]
 
-        trumps = [tup for tup in 
-                  readable_cards_played if self.suit_dictionary[tup[0]] == "Truempfe"]
-
-        if trumps:
-            winning_player =  sorted(trumps, key=lambda x:
-                            self.trump_ordering.index(x[0]),reverse=True)[0][1]
-            # extract the player number
-        else:
-            # If no trumps, the highest card matching the suit will win. 
-            correct_suit_cards = [tup for tup in readable_cards_played
-                                  if self.suit_dictionary[tup[0]] == suit]
-            winning_player = sorted(correct_suit_cards, key= lambda x:
-                self.card_ordering.index(x[1::]), reverse=True)[0][1] 
-            
-        points = sum(con.Points[c] for c, p in readable_cards_played)
-        return winning_player, points
-        
-        
-    
-    def calculate_game_winner(self):
-        offensive_team = self.whos_playing
-        defensive_team = [p for p in range(4) if not p in offensive_team]
-
-        offensive_points = 0    
-        defensive_points = 0
-
-        for p, points in self.player_points:
-            if p in offensive_team:
-                offensive_points += points
-#            else:
-#                defensive_points += points
-        
-        if offensive_points >= 61:
-            return offensive_team
-        else:
-            return defensive_team
-        # This actually needs way more work.
-        # For now, I can just do a win/lose, but ideally, I want to win  
-        # and lose by a certain number of points, AND i want laufenden and haxen etc. 
 
 
         

@@ -15,10 +15,10 @@ def reorder_dict(dic):
 
 # ============================ Basic Stuff ================================== #
     
-ALL_CARDS = ['S7', 'S8', 'S9', 'S10', 'SK', 'SA', 'SU', 'SO',
-             'H7', 'H8', 'H9', 'H10', 'HK', 'HA', 'HU', 'HO',
-             'G7', 'G8', 'G9', 'G10', 'GK', 'GA', 'GU', 'GO',
-             'E7', 'E8', 'E9', 'E10', 'EK', 'EA', 'EU', 'EO']
+ALL_CARDS = ['S7_', 'S8_', 'S9_', 'S10', 'SK_', 'SA_', 'SU_', 'SO_',
+             'H7_', 'H8_', 'H9_', 'H10', 'HK_', 'HA_', 'HU_', 'HO_',
+             'G7_', 'G8_', 'G9_', 'G10', 'GK_', 'GA_', 'GU_', 'GO_',
+             'E7_', 'E8_', 'E9_', 'E10', 'EK_', 'EA_', 'EU_', 'EO_']
 
 GAME_MODES = ['Ramsch', 'Herz Solo', 'Schellen Solo', 'Eichel Solo',
               'Gras Solo', 'Wenz', 'Partner Schellen', 'Partner Eichel',
@@ -26,35 +26,36 @@ GAME_MODES = ['Ramsch', 'Herz Solo', 'Schellen Solo', 'Eichel Solo',
 
 # ================= Suit Classification for all Game Modes ================== #
 
-STANDARD_SUITS = {'Schellen': ['S7', 'S8', 'S9', 'S10', 'SK', 'SA'],
-                  'Gras'    : ['G7', 'G8', 'G9', 'G10', 'GK', 'GA'],
-                  'Eichel'  : ['E7', 'E8', 'E9', 'E10', 'EK', 'EA'],
-                  'Truempfe': ['H7', 'H8', 'H9', 'H10', 'HK', 'HA', 'HU', 'HO',
-                              'SU', 'SO', 'GU', 'GO', 'EU', 'EO']}
+STANDARD_SUITS = {'Schellen': ('S7_', 'S8_', 'S9_', 'S10', 'SK_', 'SA_'),
+                  'Gras'    : ('G7_', 'G8_', 'G9_', 'G10', 'GK_', 'GA_'),
+                  'Eichel'  : ('E7_', 'E8_', 'E9_', 'E10', 'EK_', 'EA_'),
+                  'Truempfe': ('H7_', 'H8_', 'H9_', 'H10', 'HK_', 'HA_',
+                               'HU_', 'HO_', 'SU_', 'SO_', 'GU_', 'GO_',
+                               'EU_', 'EO_')}
                 
-WENZ_SUITS = {'Schellen': ['S7', 'S8', 'S9', 'S10', 'SK', 'SA', 'SO'],
-              'Gras'    : ['G7', 'G8', 'G9', 'G10', 'GK', 'GA', 'GO'],
-              'Eichel'  : ['E7', 'E8', 'E9', 'E10', 'EK', 'EA', 'EO'],
-              'Herz'    : ['H7', 'H8', 'H9', 'H10', 'HK', 'HA', 'HO'],
-              'Truempfe': ['HU', 'SU', 'GU', 'EU']}
+WENZ_SUITS = {'Schellen': ('S7_', 'S8_', 'S9_', 'S10', 'SK_', 'SA_', 'SO_'),
+              'Gras'    : ('G7_', 'G8_', 'G9_', 'G10', 'GK_', 'GA_', 'GO_'),
+              'Eichel'  : ('E7', 'E8', 'E9', 'E10', 'EK', 'EA', 'EO'),
+              'Herz'    : ('H7', 'H8', 'H9', 'H10', 'HK', 'HA', 'HO'),
+              'Truempfe': ('HU', 'SU', 'GU', 'EU')}
 
-GRAS_SOLO_SUITS = {'Schellen': ['S7', 'S8', 'S9', 'S10', 'SK', 'SA'],
-                   'Truempfe': ['G7', 'G8', 'G9', 'G10', 'GK', 'GA', 'HU', 
-                                'HO', 'SU', 'SO', 'GU', 'GO', 'EU', 'EO'],
-                   'Eichel'  : ['E7', 'E8', 'E9', 'E10', 'EK', 'EA'],
-                   'Herz'    : ['H7', 'H8', 'H9', 'H10', 'HK', 'HA']}
+GRAS_SOLO_SUITS = {'Schellen': ('S7', 'S8', 'S9', 'S10', 'SK', 'SA'),
+                   'Truempfe': ('G7', 'G8', 'G9', 'G10', 'GK', 'GA', 'HU', 
+                                'HO', 'SU', 'SO', 'GU', 'GO', 'EU', 'EO'),
+                   'Eichel'  : ('E7', 'E8', 'E9', 'E10', 'EK', 'EA'),
+                   'Herz'    : ('H7', 'H8', 'H9', 'H10', 'HK', 'HA')}
 
-SCHELLEN_SOLO_SUITS = {'Truempfe': ['S7', 'S8', 'S9', 'S10', 'SK', 'SA', 'HU',
-                                    'HO', 'SU', 'SO', 'GU', 'GO', 'EU', 'EO'],
-                       'Gras'    : ['G7', 'G8', 'G9', 'G10', 'GK', 'GA'],
-                       'Eichel'  : ['E7', 'E8', 'E9', 'E10', 'EK', 'EA'],
-                       'Herz'    : ['H7', 'H8', 'H9', 'H10', 'HK', 'HA']}
+SCHELLEN_SOLO_SUITS = {'Truempfe': ('S7', 'S8', 'S9', 'S10', 'SK', 'SA', 'HU',
+                                    'HO', 'SU', 'SO', 'GU', 'GO', 'EU', 'EO'),
+                       'Gras'    : ('G7', 'G8', 'G9', 'G10', 'GK', 'GA'),
+                       'Eichel'  : ('E7', 'E8', 'E9', 'E10', 'EK', 'EA'),
+                       'Herz'    : ('H7', 'H8', 'H9', 'H10', 'HK', 'HA')}
 
-EICHEL_SOLO_SUITS = {'Schellen': ['S7', 'S8', 'S9', 'S10', 'SK', 'SA'],
-                     'Gras'    : ['G7', 'G8', 'G9', 'G10', 'GK', 'GA'],
-                     'Truempfe': ['E7', 'E8', 'E9', 'E10', 'EK', 'EA', 'HU',
-                                  'HO', 'SU', 'SO',  'GU', 'GO', 'EU', 'EO'],
-                     'Herz'    : ['H7', 'H8', 'H9', 'H10', 'HK', 'HA']}
+EICHEL_SOLO_SUITS = {'Schellen': ('S7', 'S8', 'S9', 'S10', 'SK', 'SA'),
+                     'Gras'    : ('G7', 'G8', 'G9', 'G10', 'GK', 'GA'),
+                     'Truempfe': ('E7', 'E8', 'E9', 'E10', 'EK', 'EA', 'HU',
+                                  'HO', 'SU', 'SO',  'GU', 'GO', 'EU', 'EO'),
+                     'Herz'    : ('H7', 'H8', 'H9', 'H10', 'HK', 'HA')}
 
 STANDARD_MAPPING = reorder_dict(STANDARD_SUITS)
 
@@ -72,27 +73,27 @@ SUITS_MAPPING = {'Wenz'            : reorder_dict(WENZ_SUITS),
  
 # ========================== Miscellaneous ================================== #
        
-GAME_MODE_TO_ACES = {'Partner Schellen': 'SA', 'Partner Eichel': 'EA',
-                     'Partner Gras': 'GA'}
+GAME_MODE_TO_ACES = {'Partner Schellen': 'SA_', 'Partner Eichel': 'EA_',
+                     'Partner Gras': 'GA_'}
 
 
 GAME_PRIORITY = {'Herz Solo': 1, 'Gras Solo': 1, 'Eichel Solo': 1,
                  'Schellen Solo': 1, 'Wenz': 2, 'Partner Schellen': 3,
                  'Partner Eichel': 3, 'Partner Gras': 3}
 
-NORMAL_ORDERING = ['7', '8', '9', 'K', '10', 'A']
-WENZ_ORDERING = ['7', '8', '9', 'O', 'K', '10', 'A']
+NORMAL_ORDERING = ('7', '8', '9', 'K', '10', 'A')
+WENZ_ORDERING = ('7', '8', '9', 'O', 'K', '10', 'A')
 
 # ============== Trump Ordering for all game modes ========================== #
-NORMAL_TRUMP_ORDERING   = ['H7', 'H8', 'H9', 'HK', 'H10', 'HA', 'SU', 'HU' ,
-                           'GU', 'EU', 'SO', 'HO', 'GO', 'EO']
-WENZ_TRUMP_ORDERING     = ['SU', 'HU', 'GU', 'EU']
-GRAS_TRUMP_ORDERING     = ['G7', 'G8', 'G9', 'GK', 'G10', 'GA', 'SU', 'HU',
-                           'GU', 'EU', 'SO', 'HO', 'GO', 'EO']
-EICHEL_TRUMP_ORDERING   = ['E7', 'E8', 'E9', 'EK', 'E10', 'EA', 'SU', 'HU',
-                           'GU', 'EU', 'SO', 'HO', 'GO', 'EO']
-SCHELLEN_TRUMP_ORDERING = ['S7', 'S8', 'S9', 'SK', 'S10', 'SA', 'SU', 'HU',
-                           'GU', 'EU', 'SO', 'HO', 'GO', 'EO']
+NORMAL_TRUMP_ORDERING   = ('H7', 'H8', 'H9', 'HK', 'H10', 'HA', 'SU', 'HU' ,
+                           'GU', 'EU', 'SO', 'HO', 'GO', 'EO')
+WENZ_TRUMP_ORDERING     = ('SU', 'HU', 'GU', 'EU')
+GRAS_TRUMP_ORDERING     = ('G7', 'G8', 'G9', 'GK', 'G10', 'GA', 'SU', 'HU',
+                           'GU', 'EU', 'SO', 'HO', 'GO', 'EO')
+EICHEL_TRUMP_ORDERING   = ('E7', 'E8', 'E9', 'EK', 'E10', 'EA', 'SU', 'HU',
+                           'GU', 'EU', 'SO', 'HO', 'GO', 'EO')
+SCHELLEN_TRUMP_ORDERING = ('S7', 'S8', 'S9', 'SK', 'S10', 'SA', 'SU', 'HU',
+                           'GU', 'EU', 'SO', 'HO', 'GO', 'EO')
 
 TRUMP_ORDERINGS = {'Wenz'            : WENZ_TRUMP_ORDERING,
                    'Herz Solo'       : NORMAL_TRUMP_ORDERING,
