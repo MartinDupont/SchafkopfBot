@@ -5,13 +5,19 @@ Created on Thu Jul 26 15:59:16 2018
 @author: martin
 """
 
-from typing import NamedTuple
+#from typing import NamedTuple
+from collections import namedtuple
 import constants as con
 import copy
 
 
-class GameState(NamedTuple('GameState', [('game_mode', str), ('offensive_team', int),
-                                         ('active', int),("history",str) ], ("player_points",int))):
+#class GameState(NamedTuple('GameState', [('game_mode', str), ('offensive_team', int),
+#                                         ('active', int), ("history",str) , ("player_points",int)]
+#                            )
+#                ):
+class GameState(namedtuple('GameState', ['game_mode', 'offensive_team',
+                                         'active', "history", "player_points"])
+                ):
     """
 
     Subclassing NamedTuple makes the states (effectively) immutable
@@ -19,19 +25,23 @@ class GameState(NamedTuple('GameState', [('game_mode', str), ('offensive_team', 
     can arise with in-place state updates. Hashable states allow the
     state to be used as the key to a look up table.
     
-    history = "1H9_2E103HU_" 
+    history = "1H9_2E103HU_" is a single long string. each action played takes 
+              up four characters. The first character denotes who played the 
+              card, and the latter three specify which card was played. The
+              underscores are to pad out card symbols sol that all have length 3. 
+              A full round is four cards and is thus 16 characters long. 
 
     """
-    def __new__(cls, history="", game_mode="", offensive_team=(None, None), active=None):
-        if not game_mode in con.ALL_GAME_MODES:
+    def __new__(cls, game_mode="", offensive_team=(None, None), active=None, history="", player_points = (0,0,0,0)):
+        if not game_mode in con.GAME_MODES:
             raise ValueError("{} is not a valid game mode".format(game_mode))
 
-        return super(GameState, cls).__new__(cls, game_mode, offensive_team, active, history)
+        return super(GameState, cls).__new__(cls, game_mode, offensive_team, active, history, player_points)
 
     # ------------------------ Helper Functions ----------------------------- #
     def get_current_round(self):
-        start, _ = divmod(len(self.history), 16) * 16 # is 4*4
-        return self.history[start:]
+        start, junk = divmod(len(self.history), 16) # is 4*4
+        return self.history[start * 16:]
     
     def get_round_number(self):
         round_num, _ = divmod(len(self.history), 16) # is 4*4
@@ -49,7 +59,7 @@ class GameState(NamedTuple('GameState', [('game_mode', str), ('offensive_team', 
         ind = 0
         out = []
         while not ind >= len(input_string):
-            out += [(input_string[ind], input_string[ind+1,ind+4])]
+            out += [(input_string[ind], input_string[ind+1:ind+4])]
             ind += 4
         return out
     # ----------------------------------------------------------------------- # 
@@ -67,8 +77,10 @@ class GameState(NamedTuple('GameState', [('game_mode', str), ('offensive_team', 
         current_round = self.get_current_round()
         _, _, called_ace, suit_dictionary = con.constants_factory(self.game_mode)
         
-        
-        current_suit = suit_dictionary[current_round[1:]] 
+        if current_round:
+            current_suit = suit_dictionary[current_round[1:4]] 
+        else:
+            current_suit = None
         
         matching_cards = [card for card in hand if suit_dictionary[card] == current_suit]
         # If I can't match the suit, play whatever. Also works if I'm coming out, if current_suit is None.
@@ -92,10 +104,10 @@ class GameState(NamedTuple('GameState', [('game_mode', str), ('offensive_team', 
                 # If i am allowed to come out.
                 if len([card for card in hand if suit_dictionary[card] == called_colour]) >= 4:
                     # can "run away" and not open with the ace. 
-                    return self.hand
+                    return hand
                 else:
                     # Can open with the called ace, but not any other card of the called colour
-                    return [card  for card in self.hand if 
+                    return [card  for card in hand if 
                             (card == called_ace) or (suit_dictionary[card] != called_colour)]  
 
         return matching_cards
@@ -122,15 +134,15 @@ class GameState(NamedTuple('GameState', [('game_mode', str), ('offensive_team', 
         new_history = self.history+str(self.active)+action
         game_mode = self.game_mode
         offensive_team = self.offensive_team
-        if len(self.history) % 16 == 0:
-            round_string = self.history[-16:]
+        if len(new_history) % 16 == 0:
+            round_string = new_history[-16:]
             new_active, points = self.calculate_round_winner(round_string)
             player_points = tuple(p if i != new_active else p + points for i, p in enumerate(self.player_points))
         else:
-            new_active = (self.new_active + 1) % 4
+            new_active = (self.active + 1) % 4
             player_points = self.player_points
             
-        return GameState(history= new_history, active= new_active,
+        return GameState(history= new_history, active=new_active,
                          game_mode = game_mode, offensive_team=offensive_team, player_points=player_points)
         
         
@@ -138,27 +150,27 @@ class GameState(NamedTuple('GameState', [('game_mode', str), ('offensive_team', 
         if len(round_string) != 16:
             raise ValueError("Round has not been played to completion.")
             
-        card_ordering, trump_ordering, called_ace, suit_dictionary = con.constants_factory(game_mode)
+        card_ordering, trump_ordering, called_ace, suit_dictionary = con.constants_factory(self.game_mode)
             
         readable = self.player_card_tuples(round_string)
         suit = suit_dictionary[round_string[1:4]] # suit of first card played
 
         trumps = [tup for tup in 
                   readable if suit_dictionary[tup[1]] == "Truempfe"]
-
+ 
         if trumps:
             winning_player =  sorted(trumps, key=lambda x:
-                            trump_ordering.index(x[1]),reverse=True)[0][1]
+                            trump_ordering.index(x[1]),reverse=True)[0][0]
             # extract the player number
         else:
             # If no trumps, the highest card matching the suit will win. 
             correct_suit_cards = [tup for tup in readable
                                   if suit_dictionary[tup[1]] == suit]
             winning_player = sorted(correct_suit_cards, key= lambda x:
-                card_ordering.index(x[1::]), reverse=True)[0][1] 
+                card_ordering.index(x[1][1:]), reverse=True)[0][0] 
             
         points = sum(con.POINTS[c] for p, c in readable)
-        return winning_player, points
+        return int(winning_player), points
     # -------------------------------------------------   
 
     def terminal_test(self):
@@ -169,9 +181,9 @@ class GameState(NamedTuple('GameState', [('game_mode', str), ('offensive_team', 
         bool
             True if either player has no legal moves, otherwise False
         """
-        if len(self.history) == 256: # is 32*4
+        if len(self.history) == 128: # is 32*4
             return True
-        elif (len(self.history)) < 256:
+        elif (len(self.history)) < 128:
             return False
         else:
             raise ValueError("Someone tried to play past the end of the game")
