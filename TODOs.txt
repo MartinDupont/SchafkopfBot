@@ -12,26 +12,21 @@
 
 * Probably need an Arena base class too. 
 
-* Figure out the way of organizing function calls as to minimize the amount of time spent switching between matrix and string reps. 
-
 * Separate contsants.py and move functions to utils.py
 
 * make sketch code for a play loop for each mode. 
 
-* As much as possible should be put into a state object. which can return either matrix-values. Robots modify the state, and pass it along. 
-This would make deepcopies of the state rather than the robot itself. Robots should have no memories. All memory is in state.
 
 * DumbBot should literally only play cards or generate sucessors. Only internal parameter is the hand.
 
-* I can move calculate_legal_moves to the state as a "sucessor function", which accepts (!) a hand as an input.
 
 * OtherPlayersMayHave obviously also belongs in the state...... or does it??????
 * State never knows anyones hands.
 
-* Literally just represent the game state as a single string. massive performance gains. Only a deep-learning bot will need the matrix representation.
-But having everything as a string, not even a list of strings, makes it way easier on the rest of the bots.
 
-* Have each bot be fed a state of possible actions given their hand. Single point of truth. 
-* State should inherit from string. 
 
 * Implement suit_mapping as a named tuple?!?!?!
+
+*TODO: AM i allowed to open with the called ace?
+
+* put a print method in for the state
