@@ -251,6 +251,7 @@ class GameState(namedtuple('GameState', ['game_mode', 'offensive_player',
         
     def partners_known(self):
         raise NotImplementedError
+        
 
 
 class ReadableState(GameState):
@@ -274,5 +275,15 @@ class ReadableState(GameState):
                 line_str += "{} {}   ".format(p_id, card)
                 
             outstring += "\nRound {}: ".format(i+1)+line_str
+            
+        if self.terminal_test():
+            outstring += "\n====================================="
+            utility = self.utilities()
+            winners = [str(i) for i in range(4) if utility[i] == 1]
+            losers = [str(i) for i in range(4) if utility[i] == -1]
+            outstring += "\nWinners: "+" ".join(winners)
+            outstring += "\nLosers:  "+" ".join(losers)
+            
+            
         return outstring
 

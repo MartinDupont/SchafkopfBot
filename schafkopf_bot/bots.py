@@ -44,7 +44,6 @@ class BaseBot():
 
     def play_card(self, state):
         raise NotImplementedError
-        return random.choice(state.actions(self.hand))
     
     def play_or_not(self):
         raise NotImplementedError
