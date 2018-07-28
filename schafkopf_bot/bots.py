@@ -12,53 +12,58 @@ import constants as con
 
 class BaseBot():
     def __init__(self):
-        self.hand = None
+        self._hand = None
 
-    def make_state_vector(self, input_state):
-        
-        """Accepts linearized numpy array from the Arena. Appends its own vectorized
-        hand to the input_state"""
-        state_vector = np.append(input_state, self.hand)
-        return state_vector
+#    def make_state_vector(self, input_state):
+#        
+#        """Accepts linearized numpy array from the Arena. Appends its own vectorized
+#        hand to the input_state"""
+#        state_vector = np.append(input_state, self.hand)
+#        return state_vector
     
     def reset(self):
         self.hand = None
-        self.card_ordering = None
-        self.trump_ordering = None
-        self.called_ace = None
-        self.suit_dictionary = None 
-
-    def give_hand(self, hand):
-        # Perhaps I want to have polymorphism here or whatever. Can accept
-        # either a list of strings or a vector. 
-        if not all([a in con.ALL_CARDS for a in hand]):
-            raise ValueError("These aren't valid cards")
-        else:
-            self.hand = con.cards_2_vec(hand) 
-            
+#        self.card_ordering = None
+#        self.trump_ordering = None
+#        self.called_ace = None
+#        self.suit_dictionary = None 
+    # ------------------------------------------------
+    def get_hand(self):
+        return self._hand
+    
+    def set_hand(self, hand): 
+        if not (hand is None):
+            if not all([a in con.ALL_CARDS for a in hand]):
+                raise ValueError("These aren't valid cards")
+        self._hand = hand
+    hand = property(get_hand, set_hand)
+    # -------------------------------------------       
             
     def aces_in_hand(self):
         return [a for a in self.hand if a[1] == 'A']
 
-    def set_game_mode(self, game_mode):
-        #TODO: this should probably be shifted to the State.
-        if not game_mode in con.GAME_MODES:
-            raise ValueError("{} is not a valid game mode".format(game_mode))
-        self.card_ordering, self.trump_ordering, self.called_ace, self.suit_dictionary = con.constants_factory(game_mode)
- 
+    def play_card(self, state):
+        raise NotImplementedError
+        return random.choice(state.actions(self.hand))
+    
+    def play_or_not(self):
+        raise NotImplementedError
+    
+    def play_with(self):
+        raise NotImplementedError
 # =========================================================================== # 
 class DumbBot(BaseBot):
-
+    """ Just plays randomly."""
             
     def play_or_not(self):
-        options = ['spiele', 'spiele nicht']
+        options = [True, False]
         return random.choice(options)
     
-    def play_with(self): 
+    def play_with(self, i): 
         my_aces = self.aces_in_hand()
-        allowable_partner_games = {self.suit_dictionary[c] for c in self.hand if not
-                                   (c in my_aces and self.suit_dictionary[c] != "Truempfe")}
-        
+        suit_dictionary = con.STANDARD_MAPPING
+        allowable_partner_games = {suit_dictionary[c] for c in self.hand if not
+                                   (c in my_aces or suit_dictionary[c] == "Truempfe")}
         temp = ["Partner " + s for s in allowable_partner_games] # valid even if suits is empty.
         
         return random.choice(['Wenz', 'Herz Solo', 'Gras Solo', 'Eichel Solo',
@@ -66,85 +71,59 @@ class DumbBot(BaseBot):
     
         
     #---------------------------------------------------------------------
-    def calculate_legal_moves(self, game_state, round_num):
-        
-        # need access to round_representation here 
-        # all of this internal shit, card_ordering, trump_ordering, should
-        # go in the state and get pulled from the state when needed. 
-        
-        
-        if len(self.hand) == 1:
-            return self.hand   
-        
-        matching_cards = [card for card in self.hand if self.getSuits(card) == self.currentSuit]
-        # If I can't match the suit, play whatever. Also works if I'm coming out.
-        if not(matching_cards):
-            matching_cards = self.hand
-        
-        # check if we're playing a partner game, and I have the called ace. 
-        if self.gameMode in ['Partner Schellen','Partner Eichel','Partner Gras'] and (con.GAME_MODE_TO_ACES[self.gameMode] in self.hand): ## if we're doing a partner play
-            called_colour = self.gameMode.split(' ')[1]
-            called_ace =con.GAME_MODE_TO_ACES[self.gameMode]
-            if self.playedThisRound:
-                if self.currentSuit == called_colour:
-                    # play the ace if I have it
-                    return [called_ace]
-                else: 
-                    # play any valid card that isn't the ace
-                    return [card  for card in matching_cards if card != called_ace] 
-            else: 
-                # If i am allowed to come out.
-                if len([card for card in self.hand if self.getSuits(card) == called_colour]) >= 4:
-                    # can "run away" and not open with the ace. 
-                    return self.hand
-                else:
-                    # Can open with the called ace, but not any other card of the called colour
-                    return [card  for card in self.hand if 
-                            (card == called_ace) or (self.getSuits(card) != called_colour)]  
-            
-        return matching_cards
-
+    def play_card(self, state):
+        card = random.choice(state.actions(self.hand))
+        self.hand.remove(card)
+        return card
        
-                
-    def play_card(self):
-        play = self.playRandom()
-        return play
-
-    def play_random(self): 
-        # This still assumes that the hand is a list not a vector
-        if self.gameMode == None:
-            print('we havent set the gamemode yet!')
-            return None
-        if self.hand == []:
-            print('No cards left in hand')
-            return None
-        available = self.calculateLegalMoves()
-        play = random.choice(available)
-        self.setPlayedCard(play)
-        self.hand.remove(play) 
-        self.currentSuit == None
-        return play  
-    
-    def force_play(self,card):
-        # TODO: This still assumes that the hand is a list not a vector.
-        if not (card in self.hand):
-            print('That card is not in my hand')
-            return None
-
-        self.setPlayedCard(card)
-        self.hand.remove(card) 
-    
-        return card    
- 
+        
 
 class ProxyBot(BaseBot):
+    """ Plays with human input. For debugging purposes, and for playing 
+    against real opponents at card tables"""
     
     def play_card(self, state):
-        # figure out from the state what his player number is.
-        play = input("Which card would you like to play?: ")
-        if not play in con.ALL_CARDS:
-            raise ValueError("{} is not a valid card")
+        # Note that this function doesn't need to know the proxybot's hand. 
+        # This is so that we can play against opponents whose hands we dont know.
+        while True:
+            play = input("Which card would player {} like to play? \n".format(state.active))
+            if len(play) == 2:
+                play = play + "_"
+            if play in con.ALL_CARDS:
+                return play
+            else:
+                print("{} is not a valid card".format(play))
+                
+        return play
 
+    def play_or_not(self):
+        play = input("""Would like to play?: \n1: Play \n2: Don't play \n""")
+        if play == "1":
+            return True
+        return False
+    
+    def play_with(self, i):
+        while True:
+            input_string = "Player {} would like to play a: \n".format(i)
+            option_dict = {}
+            j = 0
+            for  g in con.GAME_MODES:
+                if g != "Ramsch":
+                    input_string += str(j)+": "+g+"\n"
+                    option_dict[j] = g
+                j += 1
+                
+            option_dict[str(i)] = "Ramsch" 
+            # Ramsch will be an option for if players misspeak (as often happens over beers),
+            # such that they can elect not to play after just having played. 
+            input_string += str(j)+": Cancel \n" # may or may not be necessary
+            play = input(input_string)
+            try:
+                return option_dict[play]
+            except KeyError:
+                print("That is not a valid choice")
+                continue
+        
 
 
            

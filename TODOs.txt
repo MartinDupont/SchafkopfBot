@@ -4,29 +4,21 @@
 
 * Figure out how to make a human-operable interface
 
-* Bot vs Humans should be a series of command_line inputs
- * The Human interface should inherit from the Arena, to not repeat myself
-* Put in dummy bots whose play_card() function takes a user input.
-
-* I need a bot base class, proxyBot inherits too much crap from DumbBot.
-
 * Probably need an Arena base class too. 
 
 * Separate contsants.py and move functions to utils.py
 
-* make sketch code for a play loop for each mode. 
-
-
-* DumbBot should literally only play cards or generate sucessors. Only internal parameter is the hand.
+* make sketch code for a play loop for each mode.
 
 
 * OtherPlayersMayHave obviously also belongs in the state...... or does it??????
 * State never knows anyones hands.
 
 
-
 * Implement suit_mapping as a named tuple?!?!?!
 
 *TODO: AM i allowed to open with the called ace?
 
-* put a print method in for the state
+* Print method for the state: if the game is done, calculate the winners. 
+
+* DECISION:: do i calculate who played the ace, or do i store it in memory??

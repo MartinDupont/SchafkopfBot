@@ -13,7 +13,7 @@ class CheckDavonlaufen(unittest.TestCase):
     def setUp(self):
         self.gamemode = "Partner Eichel"
         self.hand = ["E7_", "E8_", "E9_" ,"EA_","S7_"]
-        self.state = GameState(game_mode = self.gamemode, offensive_team = (0,1), active=0)
+        self.state = GameState(game_mode = self.gamemode, offensive_player = 1, active=0)
     
     def test_open_davonlaufen(self):
         allowed = self.state.actions(self.hand)
@@ -49,7 +49,7 @@ class CheckWenz(unittest.TestCase):
     def setUp(self):
         self.gamemode = "Wenz"
         self.hand = ["E7_", "EA_", "HU_" ,"EU_", "SU_"]
-        self.state = GameState(game_mode = self.gamemode, offensive_team = (0,1), active=0)  
+        self.state = GameState(game_mode = self.gamemode, offensive_player = 0, active=0)  
         
     def test_follow_unter(self):
         new_state = self.state.result("GU_")
@@ -80,7 +80,7 @@ class CheckWenz(unittest.TestCase):
         
 class CheckRoundPoints(unittest.TestCase):
     def setUp(self):
-        self.state = GameState(game_mode = "Herz Solo", offensive_team = (0, None), active=0)
+        self.state = GameState(game_mode = "Herz Solo", offensive_player = 0, active=0)
     
     def test_trump_open(self):
         state = self.state.result("EO_")
@@ -123,7 +123,7 @@ class CheckFullGame(unittest.TestCase):
         player_dict = {0:hand_0, 1:hand_1, 2:hand_2, 3:hand_3}
         
         # Player 1 calls a eichel partner play, (with player 0.)
-        state = GameState(game_mode="Partner Eichel", offensive_team=(1,0), active=0)
+        state = GameState(game_mode="Partner Eichel", offensive_player=1, active=0)
         for i in range(8):
             for j in range(4):
                 hand = player_dict[state.active]
@@ -135,7 +135,10 @@ class CheckFullGame(unittest.TestCase):
             state.calculate_round_winner(state.history[-16:])
             state.utilities()
         self.assertTrue(state.terminal_test())
+        self.assertEqual(state.played_the_ace(), 0) # correctly identifies who the partner is.
  
+#class CheckPrinting(unittest.TestCase)
+#    hist = '0EA_1E102EK_3E9_0EO_1SU_2EU_3HK_0S101S8_2SK_3S9_0G8_1GA_2G7_3GK_1HO_2H8_3HA_0GU_1H9_2HU_3H100S7_2G9_3G100SA_1H7_1SO_2GO_3E8_0E7_'
 
       
 if __name__ == "__main__":

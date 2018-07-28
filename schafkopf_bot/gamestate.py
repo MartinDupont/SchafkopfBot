@@ -9,13 +9,13 @@ Created on Thu Jul 26 15:59:16 2018
 from collections import namedtuple
 import constants as con
 import copy
-
+from math import ceil
 
 #class GameState(NamedTuple('GameState', [('game_mode', str), ('offensive_team', int),
 #                                         ('active', int), ("history",str) , ("player_points",int)]
 #                            )
 #                ):
-class GameState(namedtuple('GameState', ['game_mode', 'offensive_team',
+class GameState(namedtuple('GameState', ['game_mode', 'offensive_player',
                                          'active', "history", "player_points"])
                 ):
     """
@@ -32,11 +32,12 @@ class GameState(namedtuple('GameState', ['game_mode', 'offensive_team',
               A full round is four cards and is thus 16 characters long. 
 
     """
-    def __new__(cls, game_mode="", offensive_team=(None, None), active=None, history="", player_points = (0,0,0,0)):
+    def __new__(cls, game_mode="", offensive_player=None, active=None,
+                history="", player_points = (0,0,0,0)):
         if not game_mode in con.GAME_MODES:
             raise ValueError("{} is not a valid game mode".format(game_mode))
 
-        return super(GameState, cls).__new__(cls, game_mode, offensive_team, active, history, player_points)
+        return super(GameState, cls).__new__(cls, game_mode, offensive_player, active, history, player_points)
 
     # ------------------------ Helper Functions ----------------------------- #
     def get_current_round(self):
@@ -62,6 +63,23 @@ class GameState(namedtuple('GameState', ['game_mode', 'offensive_team',
             out += [(input_string[ind], input_string[ind+1:ind+4])]
             ind += 4
         return out
+    
+    def partner_game(self):
+        return self.game_mode in ["Partner Eichel", "Partner Schellen", "Partner Gras"]
+    
+    def played_the_ace(self):
+        if not self.partner_game():
+            raise ValueError("{} is not a partner game".format(self.game_mode))
+        
+        suit = self.game_mode.split(" ")[1][0] # extract first letter of game_mode (FRAGILE!)
+        ace = suit+"A_"
+        for i in range(len(self.history) // 4): 
+            if ace in self.history[i*4: (i+1)*4]:
+                return int(self.history[i*4])
+            
+        return None
+            
+        
     # ----------------------------------------------------------------------- # 
         
     def actions(self, hand):
@@ -133,7 +151,7 @@ class GameState(namedtuple('GameState', ['game_mode', 'offensive_team',
         """
         new_history = self.history+str(self.active)+action
         game_mode = self.game_mode
-        offensive_team = self.offensive_team
+        offensive_player = self.offensive_player
         if len(new_history) % 16 == 0:
             round_string = new_history[-16:]
             new_active, points = self.calculate_round_winner(round_string)
@@ -141,12 +159,15 @@ class GameState(namedtuple('GameState', ['game_mode', 'offensive_team',
         else:
             new_active = (self.active + 1) % 4
             player_points = self.player_points
-            
+        
         return GameState(history= new_history, active=new_active,
-                         game_mode = game_mode, offensive_team=offensive_team, player_points=player_points)
+                         game_mode = game_mode, offensive_player=offensive_player,
+                         player_points=player_points)
         
         
-    def calculate_round_winner(self, round_string):        
+    def calculate_round_winner(self, round_string=None):
+        if round_string is None:
+            round_string = self.history[-16:]
         if len(round_string) != 16:
             raise ValueError("Round has not been played to completion.")
             
@@ -199,100 +220,59 @@ class GameState(namedtuple('GameState', ['game_mode', 'offensive_team',
             a value of -1 if the player has lost, and a value of 0
             otherwise.
         """
+        # NEED TO MAKE SURE THAT PEOPLE CAN"T SECRETLY FIND OUT THE UTILITY
+        # FROM THE GAME STATE!!!!!
         if not self.terminal_test():
             return (0, 0, 0, 0)
-
-        #defensive_team = [p for p in range(4) if not p in self.offensive_team]
+        
+        if self.game_mode == "Ramsch":
+            max_score = max(self.player_points)
+            return tuple(-1 if i == max_score else 1 for i in range(4))
+            # what to do in case of a tie???
+        elif self.partner_game():
+            offensive_team = (self.offensive_player, self.played_the_ace())
+        else:
+            offensive_team = (self.offensive_player,)
 
         offensive_points = 0    
-        #defensive_points = 0
 
         for p, points in enumerate(self.player_points):
-            if p in self.offensive_team:
+            if p in offensive_team:
                 offensive_points += points
-#            else:
-#                defensive_points += points
+
         
         if offensive_points >= 61:
-            return tuple(1 if i in self.offensive_team else -1 for i in range(4))
+            return tuple(1 if i in offensive_team else -1 for i in range(4))
         else:
-            return  tuple(1 if i in self.offensive_team else -1 for i in range(4))
+            return  tuple(1 if i in offensive_team else -1 for i in range(4))
         # This actually needs way more work.
         # For now, I can just do a win/lose, but ideally, I want to win  
         # and lose by a certain number of points, AND i want laufenden and haxen etc. 
         
-        
+    def partners_known(self):
+        raise NotImplementedError
 
 
-#class DebugState(Isolation):
-#    """ Extend the Isolation game state class with utility methods for debugging &
-#    visualizing the fields in the data structure
-#
-#    Examples
-#    --------
-#    >>> board = Isolation()
-#    >>> debug_board = DebugBoard.from_state(board)
-#    >>> print(debug_board.bitboard_string)
-#    11111111111001111111111100111111111110011111111111001111111111100111111111110011111111111
-#    >>> print(debug_board)
-#
-#    + - + - + - + - + - + - + - + - + - + - + - +
-#    |   |   |   |   |   |   |   |   |   |   |   |
-#    + - + - + - + - + - + - + - + - + - + - + - +
-#    |   |   |   |   |   |   |   |   |   |   |   |
-#    + - + - + - + - + - + - + - + - + - + - + - +
-#    |   |   |   |   |   |   |   |   |   |   |   |
-#    + - + - + - + - + - + - + - + - + - + - + - +
-#    |   |   |   |   |   |   |   |   |   |   |   |
-#    + - + - + - + - + - + - + - + - + - + - + - +
-#    |   |   |   |   |   |   |   |   |   |   |   |
-#    + - + - + - + - + - + - + - + - + - + - + - +
-#    |   |   |   |   |   |   |   |   |   |   |   |
-#    + - + - + - + - + - + - + - + - + - + - + - +
-#    |   |   |   |   |   |   |   |   |   |   |   |
-#    + - + - + - + - + - + - + - + - + - + - + - +
-#    """
-#    player_symbols=['1', '2']
-#    
-#    @staticmethod
-#    def from_state(gamestate): return DebugState(gamestate.board, gamestate.ply_count, gamestate.locs)
-#
-#    @property
-#    def bitboard_string(self): return "{:b}".format(self.board)
-#
-#    @classmethod
-#    def ind2xy(cls, ind):
-#        """ Convert from board index value to xy coordinates
-#
-#        The coordinate frame is 0 in the bottom right corner, with x increasing
-#        along the columns progressing towards the left, and y increasing along
-#        the rows progressing towards teh top.
-#        """
-#        return (ind % (_WIDTH + 2), ind // (_WIDTH + 2))
-#
-#    def __str__(self):
-#        """ Generate a string representation of the current game state, marking
-#        the location of each player and indicating which cells have been blocked,
-#        and which remain open.
-#        """
-#        import os
-#        from io import StringIO
-#        OPEN = " "
-#        CLOSED = "X"
-#        cell = "| {} "
-#        rowsep = "+ - " * _WIDTH + "+"
-#        out = StringIO()
-#        out.write(rowsep + os.linesep)
-#
-#        board = self.board << 2
-#        for loc in range(_SIZE + 2):
-#            if loc > 2 and loc % (_WIDTH + 2) == 0:
-#                out.write("|" + os.linesep + rowsep + os.linesep)
-#            if loc % (_WIDTH + 2) == 0 or loc % (_WIDTH + 2) == 1:
-#                continue
-#            sym = OPEN if (board & (1 << loc)) else CLOSED
-#            if loc - 2 == self.locs[0]: sym = self.player_symbols[0]
-#            if loc - 2 == self.locs[1]: sym = self.player_symbols[1]
-#            out.write(cell.format(sym))
-#        out.write("|" + os.linesep + rowsep + os.linesep)
-#        return '\n'.join(l[::-1] for l in out.getvalue().split('\n')[::-1]) + os.linesep
+class ReadableState(GameState):
+    
+    @staticmethod
+    def from_state(gamestate): return ReadableState(gamestate.game_mode, gamestate.offensive_player, gamestate.active,
+                  gamestate.history, gamestate.player_points)
+    def __str__(self):
+        outstring = ""
+        #outstring += "Game mode: {}".format(self.game_mode)
+        outstring += "Player {} called a {}.".format(self.offensive_player, self.game_mode)
+        outstring += "\n====================================="
+        padded_history = self.history.ljust(128)
+        for i in range(0, 8):
+            line = padded_history[i*16: (i+1)*16]
+            things = self.player_card_tuples(line)
+            line_str = ""
+            for p_id, card in things:
+                if card[2] == "_":
+                    card = card[0:2]+" "
+                line_str += "{} {}   ".format(p_id, card)
+                
+            outstring += "\nRound {}: ".format(i+1)+line_str
+        return outstring
+

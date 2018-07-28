@@ -4,140 +4,145 @@ Created on Tue Jun 19 14:49:51 2018
 
 @author: martin
 """
-import  numpy as np
+
 import constants as con
 import copy
 from random import shuffle
+from bots import DumbBot, ProxyBot
+from gamestate import GameState, ReadableState
 
-# internally, as much of the processing as possible should be done with the array. 
-
-# Solution, have robot which does everything internally with arrays.
-
-#wrap instances in a human-readable interface. 
+agents_dict = {"DUMB":DumbBot, "PROXY": ProxyBot}
 
 
 class Arena:
-    def __init__(self):
-        # placeholder for players
-        self.game_state = np.zeros((4, 4, 8, 32), dtype=int)
-        # This encoding does keep track of play order, although it is a little sparse
-        self.game_mode = None # should be a one-hot encoding of lenght(game_modes)
-        self.whos_playing = None # should be a binary vector of length 4
-        self.round = 1
-        
-        self.players = None #Some object which stores players. Make a bunch of players
+    def __init__(self, bots_list, comes_out=0):
+        self.agents = {}
+        self.comes_out = comes_out
+        if not(len(bots_list) == 4):
+            raise ValueError("Please provide a string of bot names of length 4")
+            
+        for i, bot_string in enumerate(bots_list):
+            try:
+                self.agents[i] = agents_dict[bot_string]()
+            except KeyError:
+                raise ValueError("Not a valid bot name")
+                
+            # make a dictionary of agents and player instances
+
         self.deck = copy.deepcopy(con.ALL_CARDS)
-        self.comes_out = 0
-        self.player_points = {0:0, 1:0, 2:0, 3:0}
+        self.points_totals = {0:0, 1:0, 2:0, 3:0}
+    
+    def deal_cards(self):
+        """ Deal cards to the players. This is overriden in the human interface,
+            as the cards belonging to the other players are not known."""
+        shuffle(self.deck)
+        for i in [(self.comes_out + i) % 4 for i in range(4)]:
+            self.agents[i].reset()
+            self.agents[i].hand = self.deck[i*8:(i+1)*8]
         
     def new_game(self):
-        raise NotImplementedError()
+        """ Set up a new game, and then play each hand using play_game. """
+        self.deal_cards()
         
-    def play_round(self):
-        raise NotImplementedError()
+        will_play = []
+        for i in range(4):
+            if self.agents[i].play_or_not():
+                will_play += [i]
+                
+        if not will_play:
+            game_mode = "Ramsch"
+            offensive_player = None
+            print("We are playing a Ramsch")
+        else:
+            prefs = []
+            for i in will_play:
+                preference = self.agents[i].play_with(i)
+                print('Player {} wants to play a {}'.format(i, preference))
+                prefs += [(i, preference)]
+            final_choice =  max(prefs, key = lambda x: con.GAME_PRIORITY[x[1]])
+            # in case of a tie, max returns the first maximum encountered, 
+            # Thus preserving the correct order of preferences. 
+            offensive_player = final_choice[0]
+            game_mode = final_choice[1]
+
+            print('Player {} is playing a {}'.format(*final_choice))        
             
+        state = GameState(game_mode = game_mode,
+                          offensive_player = offensive_player,
+                          active = self.comes_out)
         
-    def make_state_vector(self, player_num):
-        # gotta figure out whether I want player_num to be actual number 
-        # or position in the queue.
+        self.play_game(state)
+        self.comes_out = (self.comes_out+1)%4
         
-        linearized = np.roll(self.game_state, -player_num,  axis = 0).ravel()
-        state_vector = np.concatenate((linearized, self.game_mode, self.whos_playing))
-        return state_vector
+    def play_game(self, state):
+        """ Takes a prepared game_state object and plays rounds to completion.
+        Is overridden in the human interface class."""
+        for i in range(32):
+            active = state.active
+            card = self.agents[active].play_card(state)
+            state = state.result(card)
         
-    
-    def round_representation(game_state, round_num):
-        # should these be inside or outside the class?
-        cards_played = game_state[:, :, round_num, :]
-        thing= np.where(np.sum(cards_played, axis =2))
-        thing_2 = [(i,j,con.vec_2_cards(cards_played[i, j]))
-                for i,j in zip(*thing)]
-        
-        thing_3 = sorted(thing_2, key=lambda x: x[0])
-        
-        readable_cards_played = [(b, c) for a, b, c in thing_3]
-        return readable_cards_played
-
-    def game_representation(game_state):
-        rep = dict()
-        for i in range(1, 9):
-            rep[i] = self.round_representation(game_state, i-1)
-        return rep
-
-
-        
-
-
-
-        
+        verbose = True
+        if verbose:
+            printable = ReadableState.from_state(state)
+            print(printable)
+        # update points totals.
 
 class HumanInterface(Arena):
-    def __init__(self, bot, p=0):
-        self.players[p] = DumbBot()
+    """ Version of the arena that is used to play a chosen robot against 3 other
+    human players at a card table. Has an interactive input feature."""
+    def __init__(self, bot_name, p=0):
+        b_list = []
         for i in range(4):
-            if i != p:
-                self.players[i] = ProxyBot()
+            if i == p:
+                b_list += [bot_name]
+            else:
+                b_list += ["PROXY"]
+        self.real_player = p
+        super().__init__(b_list)
+
         
     # must override player initializaition.
     # and new_game, because we can't deal out peoples cards
     # play_round must be altered to print out what the bot is doing. 
     
-    def new_game(hand , p=0):
+    def deal_cards(self):
         for i in range(4):
-            self.players[i].give_hand(hand)
-                # None of the ProxyBot's methods should actually check what hand he has....
+            self.agents[i].reset()
+            if i == self.real_player:
+                while True:
+                    input_string = input("Please type in your hand as a space-separated list of card identifiers: ")
+                    cards = input_string.strip().split(" ")
+                    card_list = []
+                    for c in cards:
+                        if len(c) == 2:
+                            c += "_"
+                        card_list += [c]
+                    try:
+                        self.agents[i].hand = card_list
+                        break
+                    except ValueError:
+                        print("Those were not valid cards")
+                        continue
+                
+    def play_game(self, state):
+        for i in range(8):
+            print("===== New Round =====")
+            for j in range(4):
+                active = state.active
+                card = self.agents[active].play_card(state)
+                print("Player {} played a {}".format(active, card))
+                state = state.result(card)
+            winner, points = state.calculate_round_winner()
+            print("Player {} won the round, gaining {} points".format(winner, points))
+        
+        
+        verbose = True
+        if verbose:
+            printable = ReadableState.from_state(state)
+            print(printable)
+        # update points totals.
+            
         
 
-class AllRobots(Arena):
-    def __init__():
-        super()__init__()
-        self.players = {i:DumbBot() for i in range(4)}
-        
-    def new_game(self):
-        self.round = 0
-        self.game_state = np.zeros((4, 4, 8, 32), dtype=int)
-        self.player_points = {0:0, 1:0, 2:0, 3:0}
-        self.comes_out = (self.comes_out + 1) % 4
-        shuffle(self.deck)
-        count = 0
-        for p in self.players:
-            p.reset()
-            hand = self.deck[count:count+8]
-            p.give_hand(hand)
-            count += 8
-        
-        for i in range(4):
-            ind = i + self.comes_out
-            self.players[ind].play_or_not()
-            # This function needs two steps. A bot needs to calculate if he
-            # wants to play, and what he wants to play with. But the two facts
-            # need to be yielded separately. 
-        
-        self.game_mode = thing
-        self.whos_playing = other_thing
-        
-        card_ordering, trump_ordering, called_ace, suit_dictionary = con.constants_factory(self.game_mode)
-        #feed these to the bots
-        
-    def play_round(self):
-        # the continuous playing loop should not be done here. 
-        for i,p in enumerate(self.play_order):
-            player = self.players[p]
-            card_num = player.play_card(self.make_state_vector(p))
-            self.game_state[i, p, self.round, card_num] = 1
-        
-        winner, points = self.calculate_round_winner(self.game_state, self.round)
-        self.player_points[winner] += points
-        self.play_order = con.make_play_order(winner)
-        
-        self.round += 1
-        if self.round == 8:
-            self.calculate_game_winner()
-
-    # Need something which is capable of setting up a single bot and letting
-    # me put in commands manually.
-    
-    
-class SimulationArena(Arena):
-    # like arena, but can start playing rounds when halfway through. 
     
