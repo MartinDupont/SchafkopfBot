@@ -9,7 +9,6 @@ Created on Thu Jul 26 15:59:16 2018
 from collections import namedtuple
 import constants as con
 import copy
-from math import ceil
 
 #class GameState(NamedTuple('GameState', [('game_mode', str), ('offensive_team', int),
 #                                         ('active', int), ("history",str) , ("player_points",int)]
@@ -33,7 +32,7 @@ class GameState(namedtuple('GameState', ['game_mode', 'offensive_player',
 
     """
     def __new__(cls, game_mode="", offensive_player=None, active=None,
-                history="", player_points = (0,0,0,0)):
+                history="", player_points = (0, 0, 0, 0)):
         if not game_mode in con.GAME_MODES:
             raise ValueError("{} is not a valid game mode".format(game_mode))
 
@@ -79,7 +78,6 @@ class GameState(namedtuple('GameState', ['game_mode', 'offensive_player',
             
         return None
             
-        
     # ----------------------------------------------------------------------- # 
         
     def actions(self, hand):
@@ -195,7 +193,7 @@ class GameState(namedtuple('GameState', ['game_mode', 'offensive_player',
     # -------------------------------------------------   
 
     def terminal_test(self):
-        """ Return True if either player has no legal moves, otherwise False
+        """ Return True if 32 cards have been played, otherwise False
 
         Returns
         -------
@@ -220,14 +218,13 @@ class GameState(namedtuple('GameState', ['game_mode', 'offensive_player',
             a value of -1 if the player has lost, and a value of 0
             otherwise.
         """
-        # NEED TO MAKE SURE THAT PEOPLE CAN"T SECRETLY FIND OUT THE UTILITY
-        # FROM THE GAME STATE!!!!!
+
         if not self.terminal_test():
             return (0, 0, 0, 0)
         
         if self.game_mode == "Ramsch":
             max_score = max(self.player_points)
-            return tuple(-1 if i == max_score else 1 for i in range(4))
+            return tuple(-1 if p == max_score else 1 for p in self.player_points)
             # what to do in case of a tie???
         elif self.partner_game():
             offensive_team = (self.offensive_player, self.played_the_ace())
@@ -262,7 +259,10 @@ class ReadableState(GameState):
     def __str__(self):
         outstring = ""
         #outstring += "Game mode: {}".format(self.game_mode)
-        outstring += "Player {} called a {}.".format(self.offensive_player, self.game_mode)
+        if self.game_mode == "Ramsch":
+            outstring += "The players played a Ramsch"
+        else:
+            outstring += "Player {} called a {}.".format(self.offensive_player, self.game_mode)
         outstring += "\n====================================="
         padded_history = self.history.ljust(128)
         for i in range(0, 8):

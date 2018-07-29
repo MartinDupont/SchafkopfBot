@@ -9,6 +9,8 @@ import random
 import copy
 import numpy as np
 import constants as con
+import math
+import time
 
 class BaseBot():
     def __init__(self):
@@ -123,12 +125,148 @@ class ProxyBot(BaseBot):
                 print("That is not a valid choice")
                 continue
         
+# =============================================================================
+ 
+def unplayed_cards(state):
+    unplayed = set(con.ALL_CARDS)
+    for p, card in state.player_card_tuples(state.history):
+        unplayed.remove(card)
+    return list(unplayed)
+        
 
+
+               
+class Node:
+    def __init__(self, state, p_hand, p_id):
+        self.Q = 0
+        self.N = 0
+        self.children = {}
+        self.parent = None
+        self.state = state
+        self.p_hand = set(p_hand)
+        self.p_id = p_id
+        if p_id == state.active:
+            self.untried_actions = set(iter(state.actions(p_hand)))
+        else:
+            self.untried_actions = unplayed_cards(state)
+        
+    def is_fully_expanded(self):
+        if self.untried_actions:
+            return False
+        return True
+   
+    def __repr__(self):
+        thing = "========== Node ==========\n"
+        thing += ("State: "+str(self.state)+"\n")
+        thing += "Q: {}, N: {}\n".format(self.Q, self.N)
+        thing += "Parent: {} \n".format(id(self.parent))
+        thing += "Children: \n"
+        for key, value in self.children.items():
+            thing += "Action:{}, location: {}\n".format(key, id(value))
+        return thing
+    
+    def print_tree(self):
+        def print_util(node, prefix="", depth = 0):
+            printstr = ""
+            for i in range(depth):
+                printstr += "     "
+            printstr += "|___"
+            printstr += str(prefix)
+            printstr += " Q: {}, N: {}\n".format(node.Q, node.N)
+            print(printstr)
+            for key, value in node.children.items():
+                print_util(value, prefix = key, depth = depth+1)
+        print_util(self)
+        
+    def depth(self):
+        def depth_util(node, count = 0):
+            if node.parent is None:
+                return count
+            else:
+                count += 1
+                return depth_util(node.parent, count)
+        return depth_util(self)
+
+
+class MonteCarlo(DumbBot):
+    def __init__(self):
+        super().__init__()
+        self.root_node = None
+        self.player_id = None
+        
+    def play_or_not(self):
+        return False
+    
+    # -------------------------  
+    def tree_policy(self, node):
+        while not node.state.terminal_test():
+            if not node.is_fully_expanded():
+                return self.expand_node(node)
+            else:
+                node, _ = self.best_child(node)
+        return node   
+    
+    def default_policy(self, state, hand, p_id):
+        # I think, assigning people random consistent hands would be better 
+        # than this. These predictions are way off. 
+        hand = set(hand)
+        active = state.active
+        while not state.terminal_test():
+            if p_id == active:
+                action = random.choice(state.actions(hand))
+                hand.remove(action)
+            else:
+                action = random.choice(unplayed_cards(state))
+            state = state.result(action)
+        return state.utilities()
+    
+    def back_up(self, node, utils):
+        while not(node.parent is None):
+            p_num = node.parent.state.active
+            node.N += 1
+            node.Q += utils[p_num]
+            node = node.parent  
+        node.N += 1
+            
+    def expand_node(self, input_node):
+        a = input_node.untried_actions.pop()
+        new_state = input_node.state.result(a)
+        new_hand = set(input_node.p_hand)
+        print(new_hand)
+        print(a)
+        if new_state.active == self.player_id:
+            new_hand.remove(a)
+        new = Node(new_state, new_hand, self.player_id)
+        new.parent = input_node
+        input_node.children[a] = new
+        return new
+            
+    # ----------------------------------
+    def best_child(self, node, c=math.sqrt(2)):
+        """ has been checked, is delivering the best children, given the inputs"""    
+        best_action, best_node = max(node.children.items(),
+                          key=lambda x: (x[1].Q / x[1].N) 
+                          + (c * math.sqrt(2 * math.log(node.N) / x[1].N)))
+        return best_node, best_action
+    
+
+    
+    def play_card(self, state):
+        self.player_id = state.active # is this a good idea?
+        self.root_node = Node(state, set(self.hand), self.player_id)
+            
+        i=0
+        start = time.time()
+        t = time.time() - start
+        while t < 2:
+            #print(i)
+            v = self.tree_policy(self.root_node)
+            utils = self.default_policy(v.state, v.p_hand, v.p_id)
+            self.back_up(v, utils)
+            node, action = self.best_child(self.root_node, 0)
+            choice = action
+            t = time.time() - start
+            i+=1
+        return choice
 
            
-class GameModeBot(DumbBot):
-    def __init__(self):
-        pass
-    # Make the robot only learn on games in which they actually play the 
-    # game mode that he selected (1st approximation)
-    

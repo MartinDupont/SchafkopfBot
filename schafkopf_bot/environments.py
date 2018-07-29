@@ -8,10 +8,10 @@ Created on Tue Jun 19 14:49:51 2018
 import constants as con
 import copy
 from random import shuffle
-from bots import DumbBot, ProxyBot
+from bots import DumbBot, ProxyBot, MonteCarlo
 from gamestate import GameState, ReadableState
 
-agents_dict = {"DUMB":DumbBot, "PROXY": ProxyBot}
+agents_dict = {"DUMB":DumbBot, "PROXY": ProxyBot, "MCTS": MonteCarlo}
 
 
 class Arena:
@@ -40,7 +40,7 @@ class Arena:
             self.agents[i].reset()
             self.agents[i].hand = self.deck[i*8:(i+1)*8]
         
-    def new_game(self):
+    def new_game(self, verbose=True):
         """ Set up a new game, and then play each hand using play_game. """
         self.deal_cards()
         
@@ -71,10 +71,10 @@ class Arena:
                           offensive_player = offensive_player,
                           active = self.comes_out)
         
-        self.play_game(state)
+        self.play_game(state, verbose)
         self.comes_out = (self.comes_out+1)%4
         
-    def play_game(self, state):
+    def play_game(self, state, verbose):
         """ Takes a prepared game_state object and plays rounds to completion.
         Is overridden in the human interface class."""
         for i in range(32):
@@ -82,7 +82,6 @@ class Arena:
             card = self.agents[active].play_card(state)
             state = state.result(card)
         
-        verbose = True
         if verbose:
             printable = ReadableState.from_state(state)
             print(printable)
@@ -143,6 +142,5 @@ class HumanInterface(Arena):
             print(printable)
         # update points totals.
             
-        
 
     

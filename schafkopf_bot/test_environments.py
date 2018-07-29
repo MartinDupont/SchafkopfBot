@@ -6,7 +6,6 @@ Created on Sat Jul 28 22:31:45 2018
 """
 
 import unittest
-from bots import DumbBot
 from environments import Arena
 
 class CheckArena(unittest.TestCase):
@@ -14,7 +13,7 @@ class CheckArena(unittest.TestCase):
         bots_list = ["DUMB", "DUMB", "DUMB", "DUMB"]
         arena = Arena(bots_list, 1)
         for _ in range(10):
-            arena.new_game()
+            arena.new_game(verbose=True)
             
             
 if __name__ == "__main__":

@@ -1,6 +1,5 @@
 * Find out how to properly create a folder structure for the bot package. 
 
-* merge TRUMP_ORDERING and normal _CARD_ORDERINGS with just a single ordering. duh. 
 
 * Figure out how to make a human-operable interface
 
@@ -19,6 +18,8 @@
 
 *TODO: AM i allowed to open with the called ace?
 
-* Print method for the state: if the game is done, calculate the winners. 
+* Add a force_play to BaseBot for debugging. 
 
-* DECISION:: do i calculate who played the ace, or do i store it in memory??
+# for the dumb monte carlo thingy, we don't even need to generate hands. Any player can play any card that hasn't yet been played. !!
+
+# What the fuck does one do in the case of a tie in a Ramsch????cm
