@@ -22,9 +22,14 @@
 
 # for the dumb monte carlo thingy, we don't even need to generate hands. Any player can play any card that hasn't yet been played. !!
 
-# What the fuck does one do in the case of a tie in a Ramsch????cm
-
 # a step up in cleverness, is that once I have (otherplayersmayhave),
 # i can put set self.untried_actions as otherplayersmayhave, in the nodes.
 
 # PARTNER PLAY POINTS ARE NOT BEING CALCULATED CORRECTLY
+
+#TODO: replace utility with straight number of points. For now, only calculate at games end when partners are known. 
+#Could however make a heuristic search robot which uses current points as heuristic. Must solve the CSP first. 
+
+# Put hardcoded rules for the gamestate in each new instance of a gamestate with the new function!!! 
+
+# Replace +-1 utilities with actual point values. 

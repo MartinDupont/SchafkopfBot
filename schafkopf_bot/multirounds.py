@@ -8,6 +8,7 @@ Created on Wed Aug  1 15:48:20 2018
 from environments import Arena
 
 botstring = ["MCTS", "MCTS", "DUMB", "DUMB"]
+#botstring = ["MCTS", "DUMB", "DUMB", "DUMB"]
 
 arena = Arena(botstring)
 

@@ -9,26 +9,30 @@ import constants as con
 import copy
 from random import shuffle
 from bots import DumbBot, ProxyBot, MonteCarlo
-from gamestate import GameState, ReadableState
+from gamestate import GameState
 
 agents_dict = {"DUMB":DumbBot, "PROXY": ProxyBot, "MCTS": MonteCarlo}
 
 
 class Arena:
+    """ This class is the overarching environment. It is responsible for setting
+    up a game with a fixed set of players. Multiple games can be played, and
+    the players remain instantiated between games. It asks the players what 
+    type of game they would like to play, then creates the appropriate GameState
+    instance."""
     def __init__(self, bots_list, comes_out=0):
         self.agents = {}
         self.comes_out = comes_out
         if not(len(bots_list) == 4):
             raise ValueError("Please provide a string of bot names of length 4")
-            
+        
+        # make a dictionary of agents and player instances
         for i, bot_string in enumerate(bots_list):
             try:
                 self.agents[i] = agents_dict[bot_string]()
             except KeyError:
-                raise ValueError("Not a valid bot name")
+                raise ValueError("{} is not a valid bot name".format(bot_string))
                 
-            # make a dictionary of agents and player instances
-
         self.deck = copy.deepcopy(con.ALL_CARDS)
         self.points_totals = {0:0, 1:0, 2:0, 3:0}
     
@@ -85,8 +89,7 @@ class Arena:
         for i in range(4):
             self.points_totals[i] += state.utilities()[i]
         if verbose:
-            printable = ReadableState.from_state(state)
-            print(printable)
+            print(state)
         # update points totals.
 
 class HumanInterface(Arena):
@@ -140,8 +143,7 @@ class HumanInterface(Arena):
         
         verbose = True
         if verbose:
-            printable = ReadableState.from_state(state)
-            print(printable)
+            print(state)
         # update points totals.
             
 

@@ -10,10 +10,6 @@ from collections import namedtuple
 import constants as con
 import copy
 
-#class GameState(NamedTuple('GameState', [('game_mode', str), ('offensive_team', int),
-#                                         ('active', int), ("history",str) , ("player_points",int)]
-#                            )
-#                ):
 class GameState(namedtuple('GameState', ['game_mode', 'offensive_player',
                                          'active', "history", "player_points"])
                 ):
@@ -64,9 +60,17 @@ class GameState(namedtuple('GameState', ['game_mode', 'offensive_player',
         return out
     
     def partner_game(self):
+        """ If the current game is a partner game, return True, else False ."""
         return self.game_mode in ["Partner Eichel", "Partner Schellen", "Partner Gras"]
     
     def played_the_ace(self):
+        """ Returns the number of the player who played the called ace, if known
+        
+        Returns
+        -------
+        int
+            Player number, if known. Else None.
+        """
         if not self.partner_game():
             raise ValueError("{} is not a partner game".format(self.game_mode))
         
@@ -81,7 +85,21 @@ class GameState(namedtuple('GameState', ['game_mode', 'offensive_player',
     # ----------------------------------------------------------------------- # 
         
     def actions(self, hand):
-        """Get available actions for a player given his hand. 
+        """Get available actions for a player given his hand. This function
+        can be somewhat hard to understand, given the many game types of 
+        schafkopf. In short, if one is playing the opening move, 
+        then they can play anything. If not, they must match the suit of the 
+        card which was played. If they cannot, then they may play anything. 
+        
+        Except if one is playing a partner game, and he has the called ace. 
+        Then he must play the called ace, if it's suit was played. It gets more
+        complicated than this due to the technicality of "running away" or 
+        "davonlaufen".
+        
+        Parameters
+        ----------
+        hand: iterable
+            An Iterable of strings of the form AK_, S10 etc. 
         
         Returns
         -------
@@ -103,7 +121,7 @@ class GameState(namedtuple('GameState', ['game_mode', 'offensive_player',
         matching_cards = [card for card in hand if suit_dictionary[card] == current_suit]
         # If I can't match the suit, play whatever. Also works if I'm coming out, if current_suit is None.
         if not(matching_cards):
-            matching_cards = hand # paranoid.
+            matching_cards = hand
         
         # check if we're playing a partner game, and I have the called ace. 
         # If we're not doing partner play, called_ace is None
@@ -166,6 +184,21 @@ class GameState(namedtuple('GameState', ['game_mode', 'offensive_player',
         
         
     def calculate_round_winner(self, round_string=None):
+        """ Calculate the winner of the last round.
+        Parameters
+        ----------
+        round_string : str
+            A string of length 16 denoting the last round played.
+
+        Returns
+        -------
+        winning_player
+            An integer denoting the number of the playe who won. 
+            
+        points
+            An integer denoting the number of points that the winning_player won.  
+        
+        """
         if round_string is None:
             round_string = self.history[-16:]
         if len(round_string) != 16:
@@ -187,7 +220,7 @@ class GameState(namedtuple('GameState', ['game_mode', 'offensive_player',
             # If no trumps, the highest card matching the suit will win. 
             correct_suit_cards = [tup for tup in readable
                                   if suit_dictionary[tup[1]] == suit]
-            winning_player = sorted(correct_suit_cards, key= lambda x:
+            winning_player = sorted(correct_suit_cards, key=lambda x:
                 card_ordering.index(x[1][1:]), reverse=True)[0][0] 
             
         points = sum(con.POINTS[c] for p, c in readable)
@@ -233,34 +266,19 @@ class GameState(namedtuple('GameState', ['game_mode', 'offensive_player',
         else:
             offensive_team = (self.offensive_player,)
 
-        offensive_points = 0    
-
-        for p, points in enumerate(self.player_points):
-            if p in offensive_team:
-                offensive_points += points
-
-        
-        if offensive_points >= 61:
+        off_points = sum(self.player_points[i] for i in offensive_team)
+        def_points = 120 - off_points        
+        if off_points >= 61:
             return tuple(1 if i in offensive_team else -1 for i in range(4))
         else:
-            return  tuple(1 if i in offensive_team else -1 for i in range(4))
+            return tuple(-1 if i in offensive_team else 1 for i in range(4))
         # This actually needs way more work.
         # For now, I can just do a win/lose, but ideally, I want to win  
         # and lose by a certain number of points, AND i want laufenden and haxen etc. 
         
-    def partners_known(self):
-        raise NotImplementedError
         
-
-
-class ReadableState(GameState):
-    
-    @staticmethod
-    def from_state(gamestate): return ReadableState(gamestate.game_mode, gamestate.offensive_player, gamestate.active,
-                  gamestate.history, gamestate.player_points)
     def __str__(self):
-        outstring = ""
-        #outstring += "Game mode: {}".format(self.game_mode)
+        outstring =  "============== New Game =============\n"
         if self.game_mode == "Ramsch":
             outstring += "The players played a Ramsch"
         else:
@@ -284,9 +302,9 @@ class ReadableState(GameState):
             winners = [str(i) for i in range(4) if utility[i] == 1]
             losers = [str(i) for i in range(4) if utility[i] == -1]
             win_points = sum(self.player_points[int(i)] for i in winners)
-            outstring += ("\nWinners: "+" ".join(winners)).ljust(15) +"Total points: {}".format(win_points)
-            outstring += ("\nLosers : "+" ".join(losers)).ljust(15) +"Total points: {}".format(120 - win_points)
-            
+            outstring += ("\nWinners: "+" ".join(winners)).ljust(16) +"Total points: {}".format(win_points)
+            outstring += ("\nLosers : "+" ".join(losers)).ljust(16) +"Total points: {}".format(120 - win_points)
+            outstring += "\n====================================="
             
         return outstring
 

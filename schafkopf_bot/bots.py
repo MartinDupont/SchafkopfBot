@@ -15,20 +15,9 @@ import time
 class BaseBot():
     def __init__(self):
         self._hand = None
-
-#    def make_state_vector(self, input_state):
-#        
-#        """Accepts linearized numpy array from the Arena. Appends its own vectorized
-#        hand to the input_state"""
-#        state_vector = np.append(input_state, self.hand)
-#        return state_vector
     
     def reset(self):
         self.hand = None
-#        self.card_ordering = None
-#        self.trump_ordering = None
-#        self.called_ace = None
-#        self.suit_dictionary = None 
     # ------------------------------------------------
     def get_hand(self):
         return self._hand
@@ -77,7 +66,7 @@ class DumbBot(BaseBot):
         self.hand.remove(card)
         return card
        
-        
+# =========================================================================== #        
 
 class ProxyBot(BaseBot):
     """ Plays with human input. For debugging purposes, and for playing 
@@ -203,6 +192,15 @@ class Node:
 
 
 class MonteCarlo(DumbBot):
+    """ Follows a very straightfoward implementation of a Monte Carlo Tree Search:
+    https://en.wikipedia.org/wiki/Monte_Carlo_tree_search
+    
+    The algorithm had to be modified slightly, because schafkopf is an incomplete
+    information game. Opponents can play any of the cards that have not been 
+    played so far, and that are not known to be in this players hand. 
+    As it stands, this is inefficient, as we can rule out that other players
+    have certain hands. 
+    """
     def __init__(self):
         super().__init__()
         self.root_node = None
