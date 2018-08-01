@@ -23,3 +23,8 @@
 # for the dumb monte carlo thingy, we don't even need to generate hands. Any player can play any card that hasn't yet been played. !!
 
 # What the fuck does one do in the case of a tie in a Ramsch????cm
+
+# a step up in cleverness, is that once I have (otherplayersmayhave),
+# i can put set self.untried_actions as otherplayersmayhave, in the nodes.
+
+# PARTNER PLAY POINTS ARE NOT BEING CALCULATED CORRECTLY

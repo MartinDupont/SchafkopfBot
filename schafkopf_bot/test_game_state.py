@@ -109,6 +109,25 @@ class CheckRoundPoints(unittest.TestCase):
         self.assertEqual(3, winner)
         self.assertEqual(21, points)
         
+    def test_winner_calculations(self):
+        """ Do a Solo in which the first guy definitely wins."""
+        fixed_history = ["EO_", "GO_", "HO_", "SO_",
+                         "EU_", "GU_", "HU_", "SU_",
+                         "HA_", "H10", "HK_", "H9_",
+                         "EA_", "E10", "EK_", "E9_",
+                         "GA_", "G10", "GK_", "G9_",
+                         "SA_", "S10", "SK_", "S9_",
+                         "H8_", "E8_", "E7_", "G8_",
+                         "H7_", "G7_", "S8_", "S7_"]
+        
+        state = self.state
+        for card in fixed_history:
+            state = state.result(card)
+        
+        utility = state.utilities()
+        expected = (1, -1, -1, -1)
+        self.assertEqual(utility, expected)
+        
 class CheckRamsch(unittest.TestCase):
     def setUp(self):
         self.state = GameState(game_mode = "Ramsch", offensive_player = None, active=0)

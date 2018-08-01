@@ -127,11 +127,14 @@ class ProxyBot(BaseBot):
         
 # =============================================================================
  
-def unplayed_cards(state):
-    unplayed = set(con.ALL_CARDS)
+def unplayed_cards(state, hand):
+    unplayed = set(copy.deepcopy(con.ALL_CARDS))
     for p, card in state.player_card_tuples(state.history):
         unplayed.remove(card)
-    return list(unplayed)
+        
+    for card in hand:
+        unplayed.remove(card)
+    return unplayed
         
 
 
@@ -148,7 +151,17 @@ class Node:
         if p_id == state.active:
             self.untried_actions = set(iter(state.actions(p_hand)))
         else:
-            self.untried_actions = unplayed_cards(state)
+            self.untried_actions = unplayed_cards(state, p_hand)
+            
+    def add_child(self, action):
+        new_hand = copy.deepcopy(self.p_hand)
+        if self.state.active == self.p_id:
+            new_hand.remove(action)
+        new_state = self.state.result(action)
+        new_node = Node(new_state, new_hand, self.p_id)
+        self.children[action] = new_node
+        new_node.parent = self
+        return new_node
         
     def is_fully_expanded(self):
         if self.untried_actions:
@@ -172,7 +185,8 @@ class Node:
                 printstr += "     "
             printstr += "|___"
             printstr += str(prefix)
-            printstr += " Q: {}, N: {}\n".format(node.Q, node.N)
+            printstr += " Q: {}, N: {}, ".format(node.Q, node.N)
+            printstr += "Hand: "+str(node.p_hand)+"\n"
             print(printstr)
             for key, value in node.children.items():
                 print_util(value, prefix = key, depth = depth+1)
@@ -210,13 +224,13 @@ class MonteCarlo(DumbBot):
         # I think, assigning people random consistent hands would be better 
         # than this. These predictions are way off. 
         hand = set(hand)
-        active = state.active
         while not state.terminal_test():
+            active = state.active
             if p_id == active:
                 action = random.choice(state.actions(hand))
                 hand.remove(action)
             else:
-                action = random.choice(unplayed_cards(state))
+                action = random.choice(list(unplayed_cards(state, hand)))
             state = state.result(action)
         return state.utilities()
     
@@ -230,16 +244,8 @@ class MonteCarlo(DumbBot):
             
     def expand_node(self, input_node):
         a = input_node.untried_actions.pop()
-        new_state = input_node.state.result(a)
-        new_hand = set(input_node.p_hand)
-        print(new_hand)
-        print(a)
-        if new_state.active == self.player_id:
-            new_hand.remove(a)
-        new = Node(new_state, new_hand, self.player_id)
-        new.parent = input_node
-        input_node.children[a] = new
-        return new
+        new_node = input_node.add_child(a)
+        return new_node
             
     # ----------------------------------
     def best_child(self, node, c=math.sqrt(2)):
@@ -254,7 +260,6 @@ class MonteCarlo(DumbBot):
     def play_card(self, state):
         self.player_id = state.active # is this a good idea?
         self.root_node = Node(state, set(self.hand), self.player_id)
-            
         i=0
         start = time.time()
         t = time.time() - start
@@ -267,6 +272,9 @@ class MonteCarlo(DumbBot):
             choice = action
             t = time.time() - start
             i+=1
+        #self.root_node.print_tree()
+        #print("Number of nodes expanded: {}".format(i))
+        self.hand.remove(choice)
         return choice
 
            

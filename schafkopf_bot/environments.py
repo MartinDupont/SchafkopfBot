@@ -82,6 +82,8 @@ class Arena:
             card = self.agents[active].play_card(state)
             state = state.result(card)
         
+        for i in range(4):
+            self.points_totals[i] += state.utilities()[i]
         if verbose:
             printable = ReadableState.from_state(state)
             print(printable)

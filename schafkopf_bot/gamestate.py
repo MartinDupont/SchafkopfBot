@@ -87,6 +87,8 @@ class GameState(namedtuple('GameState', ['game_mode', 'offensive_player',
         -------
         list 
              a list of available cards to be played, as strings. """
+        hand = list(hand)
+        
         if len(hand) == 1:
             return hand   
         
@@ -101,7 +103,7 @@ class GameState(namedtuple('GameState', ['game_mode', 'offensive_player',
         matching_cards = [card for card in hand if suit_dictionary[card] == current_suit]
         # If I can't match the suit, play whatever. Also works if I'm coming out, if current_suit is None.
         if not(matching_cards):
-            matching_cards = copy.deepcopy(hand) # paranoid.
+            matching_cards = hand # paranoid.
         
         # check if we're playing a partner game, and I have the called ace. 
         # If we're not doing partner play, called_ace is None
@@ -225,7 +227,7 @@ class GameState(namedtuple('GameState', ['game_mode', 'offensive_player',
         if self.game_mode == "Ramsch":
             max_score = max(self.player_points)
             return tuple(-1 if p == max_score else 1 for p in self.player_points)
-            # what to do in case of a tie???
+            # Also covers the case of a tie.
         elif self.partner_game():
             offensive_team = (self.offensive_player, self.played_the_ace())
         else:
@@ -281,8 +283,9 @@ class ReadableState(GameState):
             utility = self.utilities()
             winners = [str(i) for i in range(4) if utility[i] == 1]
             losers = [str(i) for i in range(4) if utility[i] == -1]
-            outstring += "\nWinners: "+" ".join(winners)
-            outstring += "\nLosers:  "+" ".join(losers)
+            win_points = sum(self.player_points[int(i)] for i in winners)
+            outstring += ("\nWinners: "+" ".join(winners)).ljust(15) +"Total points: {}".format(win_points)
+            outstring += ("\nLosers : "+" ".join(losers)).ljust(15) +"Total points: {}".format(120 - win_points)
             
             
         return outstring
