@@ -1,5 +1,3 @@
-* Find out how to properly create a folder structure for the bot package. 
-
 
 * Figure out how to make a human-operable interface
 
@@ -19,8 +17,6 @@
 *TODO: AM i allowed to open with the called ace?
 
 * Add a force_play to BaseBot for debugging. 
-
-# for the dumb monte carlo thingy, we don't even need to generate hands. Any player can play any card that hasn't yet been played. !!
 
 # a step up in cleverness, is that once I have (otherplayersmayhave),
 # i can put set self.untried_actions as otherplayersmayhave, in the nodes.
