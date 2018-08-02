@@ -1,8 +1,15 @@
+"""
+@Author: Juraj Vrabel
+
+All credit to my friend Juraj who helped me with my robot and wrote this function.
+It is by far mostly his work, with a couple of minor changes by me. 
+
+"""
 import random
 import numpy as np
 import copy
 
-def pickBiggestDoubleSet(double_sets):
+def pick_biggest_double_set(double_sets):
     keys = list( double_sets.keys() )
     random.shuffle(keys) # make random initial pick
     ret = keys[0]
@@ -10,23 +17,25 @@ def pickBiggestDoubleSet(double_sets):
         if len(double_sets[key]) > len(double_sets[ret]): ret = key
     return ret
 
-def appendCardDecreaseCount(card, key, distributedCards, number_of_cards_for_player):
+def append_card_decrease_count(card, key, distributedCards, number_of_cards_for_player):
     distributedCards[key].append(card)
     number_of_cards_for_player[key] = number_of_cards_for_player[key] - 1
 
 
-def distributeCards(possible_cards_for_player, number_of_cards_for_player):
+def distribute_cards(possible_cards_for_player, number_of_cards_for_player):
     # possible_cards_for_player  - dict, keys: player number, values: list of possible cards for the player
     # number_of_cards_for_player - dict, keys: player number, values: integer number of cards needed
 
     keys = list(possible_cards_for_player.keys())
 
     # Check if the task is possible, i.e. possible number of cards == cards needed.
-    n_possible_cards = len(set( possible_cards_for_player[keys[0]]
-                               +possible_cards_for_player[keys[1]]
-                               +possible_cards_for_player[keys[2]] ))
+    superset = set()
+    for values in possible_cards_for_player.values():
+        superset.update(set(values))
+        
+    n_possible_cards = len(superset)
     n_needed_cards = np.sum(list(number_of_cards_for_player.values()))
-
+    
     assert(n_possible_cards == n_needed_cards)
 
     # Copy passed variables so that they are not changed
@@ -57,14 +66,14 @@ def distributeCards(possible_cards_for_player, number_of_cards_for_player):
 
     # Repeat until the cards in double_sets are all distributed.
     for _ in range(np.sum(list(ncp.values())) - len(p123)):
-        key_pair = pickBiggestDoubleSet(double_sets)
+        key_pair = pick_biggest_double_set(double_sets)
         card = random.choice(double_sets[key_pair])
         double_sets[key_pair].remove(card)
 
         if ncp[key_pair[0]] > ncp[key_pair[1]]:
-            appendCardDecreaseCount(card, key_pair[0], distributedCards, ncp)
+            append_card_decrease_count(card, key_pair[0], distributedCards, ncp)
         else:
-            appendCardDecreaseCount(card, key_pair[1], distributedCards, ncp)
+            append_card_decrease_count(card, key_pair[1], distributedCards, ncp)
 
     # Change p123 from set to list.
     p123 = list(p123)
@@ -72,25 +81,25 @@ def distributeCards(possible_cards_for_player, number_of_cards_for_player):
         card = random.choice(p123)
         p123.remove(card)
         if ncp[keys[0]]:
-            appendCardDecreaseCount(card, keys[0], distributedCards, ncp)
+            append_card_decrease_count(card, keys[0], distributedCards, ncp)
         elif ncp[keys[1]]:
-            appendCardDecreaseCount(card, keys[1], distributedCards, ncp)
+            append_card_decrease_count(card, keys[1], distributedCards, ncp)
         elif ncp[keys[2]]:
-            appendCardDecreaseCount(card, keys[2], distributedCards, ncp)
+            append_card_decrease_count(card, keys[2], distributedCards, ncp)
 
     return distributedCards
 
 if __name__ == "__main__":
-    for _ in range(1000000):
+    for _ in range(1000):
 #        pcp = {1: [1,3,4,6,7,8,9], 2: [1,2,4,5,7,8,9], 3: [2,3,5]}
 #        ncp = {1: 3, 2: 3, 3: 3}
 #        print(distributeCards(pcp, ncp))
         remaining_cards = ["H7", "H8", "H9", "H10", "HK", "HA",
                            "E8", "E9", "S8", "S9", 
                            "G8", "G9", "G10", "GA", "GK"]
-        pcp = {1: remaining_cards, 2: remaining_cards, 3: ["G8", "G9", "G10", "GA", "GK"]}
-        ncp = {1: 5, 2: 5, 3: 5}
-        result = distributeCards(pcp, ncp)
+        pcp = {0: remaining_cards, 1: remaining_cards, 2: ["G8", "G9", "G10", "GA", "GK"]}
+        ncp = {0: 5, 1: 5, 2: 5}
+        result = distribute_cards(pcp, ncp)
         for key in ncp.keys():
             try:
                 assert(len(result[key]) == ncp[key])

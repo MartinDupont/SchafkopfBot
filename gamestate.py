@@ -47,7 +47,7 @@ class GameState(namedtuple('GameState', ['game_mode', 'offensive_player',
         ind = 0
         out = []
         while not ind >= len(input_string):
-            out += [input_string[ind,ind+stride]]
+            out += [input_string[ind:ind+stride]]
             ind += stride
         return out
     
@@ -55,7 +55,7 @@ class GameState(namedtuple('GameState', ['game_mode', 'offensive_player',
         ind = 0
         out = []
         while not ind >= len(input_string):
-            out += [(input_string[ind], input_string[ind+1:ind+4])]
+            out += [(int(input_string[ind]), input_string[ind+1:ind+4])]
             ind += 4
         return out
     

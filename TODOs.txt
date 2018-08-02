@@ -21,7 +21,6 @@
 # a step up in cleverness, is that once I have (otherplayersmayhave),
 # i can put set self.untried_actions as otherplayersmayhave, in the nodes.
 
-# PARTNER PLAY POINTS ARE NOT BEING CALCULATED CORRECTLY
 
 #TODO: replace utility with straight number of points. For now, only calculate at games end when partners are known. 
 #Could however make a heuristic search robot which uses current points as heuristic. Must solve the CSP first. 
