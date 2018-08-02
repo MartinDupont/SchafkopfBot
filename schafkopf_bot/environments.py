@@ -8,10 +8,11 @@ Created on Tue Jun 19 14:49:51 2018
 import constants as con
 import copy
 from random import shuffle
-from bots import DumbBot, ProxyBot, MonteCarlo
+from bots import DumbBot, ProxyBot, MonteCarlo, MonteCarloPlus
 from gamestate import GameState
 
-agents_dict = {"DUMB":DumbBot, "PROXY": ProxyBot, "MCTS": MonteCarlo}
+agents_dict = {"DUMB":DumbBot, "PROXY": ProxyBot, "MCTS": MonteCarlo,
+               "MCTSPLUS":MonteCarloPlus}
 
 
 class Arena:

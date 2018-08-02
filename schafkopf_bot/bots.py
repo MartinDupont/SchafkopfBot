@@ -51,13 +51,22 @@ class DumbBot(BaseBot):
     
     def play_with(self, i): 
         my_aces = self.aces_in_hand()
-        suit_dictionary = con.STANDARD_MAPPING
-        allowable_partner_games = {suit_dictionary[c] for c in self.hand if not
-                                   (c in my_aces or suit_dictionary[c] == "Truempfe")}
-        temp = ["Partner " + s for s in allowable_partner_games] # valid even if suits is empty.
+        temp_dict = {"Partner Schellen": "SA_", "Partner Eichel": "EA_",
+                     "Partner Gras": "GA_"}
+        allowable_partner_games = [key for key, value in temp_dict.items() 
+                                    if not value in my_aces]
+
         
         return random.choice(['Wenz', 'Herz Solo', 'Gras Solo', 'Eichel Solo',
-                              'Schellen Solo'] + temp + temp + temp) 
+                              'Schellen Solo'] + allowable_partner_games 
+                                + allowable_partner_games 
+                                + allowable_partner_games
+                                + allowable_partner_games
+                                + allowable_partner_games
+                                + allowable_partner_games
+                                + allowable_partner_games) 
+                                # cheap way of making sure they don't just play
+                                # solos all the time. 
     
         
     #---------------------------------------------------------------------
@@ -275,4 +284,18 @@ class MonteCarlo(DumbBot):
         self.hand.remove(choice)
         return choice
 
-           
+
+class MonteCarloPlus(MonteCarlo):
+    def default_policy(self, state, hand, p_id):
+        # I think, assigning people random consistent hands would be better 
+        # than this. These predictions are way off. 
+        hand = set(hand)
+        while not state.terminal_test():
+            active = state.active
+            if p_id == active:
+                action = random.choice(state.actions(hand))
+                hand.remove(action)
+            else:
+                action = random.choice(list(unplayed_cards(state, hand)))
+            state = state.result(action)
+        return state.utilities_test()      

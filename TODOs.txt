@@ -33,3 +33,9 @@
 # Put hardcoded rules for the gamestate in each new instance of a gamestate with the new function!!! 
 
 # Replace +-1 utilities with actual point values. 
+
+# add in a winning_points function. 
+
+# add in a winners function into the state. Currently I can't debug the winners except for if i print them 
+
+# add a check at the end of the game to see if everyone played by the rules. 

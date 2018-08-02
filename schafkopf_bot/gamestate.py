@@ -268,13 +268,33 @@ class GameState(namedtuple('GameState', ['game_mode', 'offensive_player',
 
         off_points = sum(self.player_points[i] for i in offensive_team)
         def_points = 120 - off_points        
+        
         if off_points >= 61:
             return tuple(1 if i in offensive_team else -1 for i in range(4))
         else:
             return tuple(-1 if i in offensive_team else 1 for i in range(4))
-        # This actually needs way more work.
-        # For now, I can just do a win/lose, but ideally, I want to win  
-        # and lose by a certain number of points, AND i want laufenden and haxen etc. 
+        
+    def utilities_test(self):
+        """ 
+        Testing if a different utility function improves my MCTS bots.
+        """
+
+        if not self.terminal_test():
+            return (0, 0, 0, 0)
+        
+        if self.game_mode == "Ramsch":
+            return tuple(-p for p in self.player_points)
+
+        elif self.partner_game():
+            offensive_team = (self.offensive_player, self.played_the_ace())
+        else:
+            offensive_team = (self.offensive_player,)
+
+        off_points = sum(self.player_points[i] for i in offensive_team)
+        def_points = 120 - off_points        
+        
+        return tuple(off_points if i in offensive_team else def_points for i in range(4))
+
         
         
     def __str__(self):
