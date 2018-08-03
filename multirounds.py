@@ -12,7 +12,7 @@ botstring = ["MCTS", "MCTSPLUS", "DUMB", "DUMB"]
 
 arena = Arena(botstring)
 
-for i in range(1000):
+for i in range(10):
     arena.new_game()
 
     print("Round end total points:")  

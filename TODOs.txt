@@ -1,15 +1,9 @@
 
-* Figure out how to make a human-operable interface
-
 * Probably need an Arena base class too. 
 
 * Separate contsants.py and move functions to utils.py
 
 * make sketch code for a play loop for each mode.
-
-
-* OtherPlayersMayHave obviously also belongs in the state...... or does it??????
-* State never knows anyones hands.
 
 
 * Implement suit_mapping as a named tuple?!?!?!
@@ -20,6 +14,8 @@
 
 # a step up in cleverness, is that once I have (otherplayersmayhave),
 # i can put set self.untried_actions as otherplayersmayhave, in the nodes.
+# Better! otherplayersmayhave should be stored IN the nodes, and updated iteratively, 
+	rather than having to run through the whole game history every time!!!
 
 
 #TODO: replace utility with straight number of points. For now, only calculate at games end when partners are known. 
@@ -34,3 +30,16 @@
 # add in a winners function into the state. Currently I can't debug the winners except for if i print them 
 
 # add a check at the end of the game to see if everyone played by the rules. 
+
+# get consistent naming p_id vs p_num etc. 
+
+# when trying to print incomplete state:
+out += [(int(input_string[ind]), input_string[ind+1:ind+4])]
+
+ValueError: invalid literal for int() with base 10: ' '
+
+# TODO: one of the assertions in distribute_cards is probably unnecessary. 
+
+# Need more robust checks on gamesate
+
+# check: is there something wrong with possible_hands in expand_node??? returns dict with empty entries????

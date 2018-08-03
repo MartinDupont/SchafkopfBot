@@ -58,7 +58,7 @@ class CheckWenz(unittest.TestCase):
         self.assertEqual(allowed, expected)
         
     def test_follow_normal(self):
-        new_state = self.state.result("E10_")
+        new_state = self.state.result("E10")
         allowed = new_state.actions(self.hand)
         expected = ["E7_", "EA_"]
         self.assertEqual(allowed, expected)

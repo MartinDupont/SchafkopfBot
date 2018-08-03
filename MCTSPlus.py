@@ -60,11 +60,11 @@ def how_many(state, p_id):
         
     return counts
     
-def assign_hands(state, p_hand, p_num):
+def assign_hands(state, p_hand, p_id):
     """ Returns a dict of possible hands for a player given that we know
-    the hand of player p_num. Returns only A plausible solution. """
-    number_constraints = how_many(state, p_num)
-    card_constraints = inverse_legal_moves(state, p_hand, p_num)
+    the hand of player p_id. Returns only A plausible solution. """
+    number_constraints = how_many(state, p_id)
+    card_constraints = inverse_legal_moves(state, p_hand, p_id)
     result = distribute_cards(card_constraints, number_constraints)
     return result
 
@@ -80,7 +80,8 @@ class Node:
         if p_id == state.active:
             self.untried_actions = set(iter(state.actions(p_hand)))
         else:
-            self.untried_actions = unplayed_cards(state, p_hand)
+            card_constraints = inverse_legal_moves(state, p_hand, p_id)
+            self.untried_actions = card_constraints[state.active]
             
     def add_child(self, action):
         new_hand = copy.deepcopy(self.p_hand)
@@ -99,7 +100,7 @@ class Node:
    
     def __repr__(self):
         thing = "========== Node ==========\n"
-        thing += ("State: "+str(self.state)+"\n")
+        thing += ("State: "+str(self.state.history)+"\n")
         thing += "Q: {}, N: {}\n".format(self.Q, self.N)
         thing += "Parent: {} \n".format(id(self.parent))
         thing += "Children: \n"
@@ -156,14 +157,14 @@ class MonteCarloPlus(DumbBot):
         Sometimes, the node may actually not be expandable, and we raise an error"""
         while not node.state.terminal_test():
             if not node.is_fully_expanded():
-                tup = self.expand_node()
-                if not (tup is None):
+                tup = self.expand_node(node)
+                if not (tup == (None, None)):
                     return tup
                 else:
                     continue
             else:
                 node, _ = self.best_child(node)
-        return node , node.state.utils()  
+        return node , node.state.utilities()  
     
     def default_policy(self, state, possible_hands):
         """ Given some consistent assignment of hands, each player then 
@@ -176,6 +177,7 @@ class MonteCarloPlus(DumbBot):
         while not state.terminal_test():
             active = state.active
             active_hand = possible_hands[active]
+            #print(active_hand)
             action = random.choice(state.actions(active_hand))
             active_hand.remove(action)
             state = state.result(action)
@@ -193,12 +195,16 @@ class MonteCarloPlus(DumbBot):
     def expand_node(self, input_node):
         a = input_node.untried_actions.pop()
         try:
-            possible_hands = assign_hands()
             new_node = input_node.add_child(a)
-            utils = self.default_policy(input_node.state, possible_hands)
+            possible_hands = assign_hands(new_node.state, new_node.p_hand, new_node.p_id)
+            possible_hands[new_node.p_id] = copy.deepcopy(new_node.p_hand)
+            utils = self.default_policy(new_node.state, possible_hands)
             return new_node, utils
-        except:
-            return None
+        except AssertionError:
+            #print(how_many(input_node.state, input_node.p_id))
+            #print(inverse_legal_moves(input_node.state, input_node.p_hand, input_node.p_id))
+            del input_node.children[a]
+            return None, None
 
     # ----------------------------------
     def best_child(self, node, c=math.sqrt(2)):
@@ -213,18 +219,22 @@ class MonteCarloPlus(DumbBot):
     def play_card(self, state):
         self.player_id = state.active # is this a good idea?
         self.root_node = Node(state, set(self.hand), self.player_id)
+        # if i ever start a simulation where another player has priority, 
+        # my algorithm will assume that THAT player has MY hand. 
         i=0
         start = time.time()
         t = time.time() - start
+        depth = 0
         while t < 2:
-            #print(i)
             v, utils = self.tree_policy(self.root_node)
+            depth = max((depth,v.depth()))
             self.back_up(v, utils)
             node, action = self.best_child(self.root_node, 0)
             choice = action
             t = time.time() - start
             i+=1
-        #self.root_node.print_tree()
-        #print("Number of nodes expanded: {}".format(i))
+
+        print("Depth: "+str(depth))
+        print("N cycles: "+str(i))
         self.hand.remove(choice)
         return choice

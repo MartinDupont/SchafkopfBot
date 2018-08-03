@@ -46,6 +46,20 @@ class inverseLegal(unittest.TestCase):
             possibility = self.card_constraints[key]
             value = set(value)
             self.assertTrue(value.issubset(possibility))
+
+class checkCatchExceptions(unittest.TestCase):
+    def test_1(self):
+        """Give it an unsolveable set of constraints and see if an exception is 
+        raised. This set will pass the first assertion, but not the second."""
+        number_constraints = {1: 5, 2: 5, 3: 5}
+        card_constraints = {1: {'E8_', 'E9_', 'H10', 'H7_', 'H8_',
+                                'H9_', 'HA_', 'HK_', 'S8_', 'S9_'},
+                            2: {'G10', 'G8_', 'G9_', 'GA_', 'GK_'},
+                            3: {'G10', 'G8_', 'G9_', 'GA_', 'GK_'}}
+
+        self.assertRaises(AssertionError,
+                          distribute_cards, card_constraints, number_constraints)
+
         
 class handAssignmentsFullGames(unittest.TestCase):
     

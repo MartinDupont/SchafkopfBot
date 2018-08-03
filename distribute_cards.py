@@ -36,7 +36,7 @@ def distribute_cards(possible_cards_for_player, number_of_cards_for_player):
     n_possible_cards = len(superset)
     n_needed_cards = np.sum(list(number_of_cards_for_player.values()))
     
-    assert(n_possible_cards == n_needed_cards)
+    assert(n_possible_cards == n_needed_cards), "Unsolvable conditions."
 
     # Copy passed variables so that they are not changed
     pcp = copy.deepcopy(possible_cards_for_player)
@@ -87,6 +87,10 @@ def distribute_cards(possible_cards_for_player, number_of_cards_for_player):
         elif ncp[keys[2]]:
             append_card_decrease_count(card, keys[2], distributedCards, ncp)
 
+    for key, value in distributedCards.items():    
+        assert(set(value).issubset(possible_cards_for_player[key])), "Someone was given inconsistent cards."
+        assert(len(value) == number_of_cards_for_player[key]), "Someone was given the wrong number of cards."
+    
     return distributedCards
 
 if __name__ == "__main__":

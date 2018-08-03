@@ -31,6 +31,8 @@ class GameState(namedtuple('GameState', ['game_mode', 'offensive_player',
                 history="", player_points = (0, 0, 0, 0)):
         if not game_mode in con.GAME_MODES:
             raise ValueError("{} is not a valid game mode".format(game_mode))
+        if not (len(history) %4 == 0):
+            raise ValueError("The inputted history is not correct.")
 
         return super(GameState, cls).__new__(cls, game_mode, offensive_player, active, history, player_points)
 
@@ -167,6 +169,11 @@ class GameState(namedtuple('GameState', ['game_mode', 'offensive_player',
         GameState
             A new state object with the input move applied.
         """
+        if not (action in con.ALL_CARDS):
+            print(type(action))
+            print(action)
+            raise ValueError("{} is not a valid action.".format(action))
+        
         new_history = self.history+str(self.active)+action
         game_mode = self.game_mode
         offensive_player = self.offensive_player
@@ -304,9 +311,9 @@ class GameState(namedtuple('GameState', ['game_mode', 'offensive_player',
         else:
             outstring += "Player {} called a {}.".format(self.offensive_player, self.game_mode)
         outstring += "\n====================================="
-        padded_history = self.history.ljust(128)
+        history = self.history
         for i in range(0, 8):
-            line = padded_history[i*16: (i+1)*16]
+            line = history[i*16: (i+1)*16]
             things = self.player_card_tuples(line)
             line_str = ""
             for p_id, card in things:
