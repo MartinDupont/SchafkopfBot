@@ -39,13 +39,19 @@ def inverse_legal_moves(state, hand, p_id):
                 players_may_have[p_num].discard(card)
                 
             suit = suits_mapping[card]
-            if suit != starting_suit:
+            if (suit != starting_suit) and (p != p_id):
                 temp = {c for c in players_may_have[p] if  suits_mapping[c] != starting_suit}                
                 players_may_have[p] = temp
 
     return players_may_have
 
 def how_many(state, p_id):
+    """ Determines how many cards each player should have in their hand.
+    Returns
+    -------
+    dict
+        A dict mapping player number to number of required cards. 
+    """
     other_players = [(i + p_id) % 4 for i in range(1, 4)]
     counts = {p:8 for p in other_players}
     for p, card in state.player_card_tuples(state.history):
@@ -131,9 +137,9 @@ class MonteCarloPlus(DumbBot):
     
     The algorithm had to be modified slightly, because schafkopf is an incomplete
     information game. Opponents can play any of the cards that have not been 
-    played so far, and that are not known to be in this players hand. 
-    As it stands, this is inefficient, as we can rule out that other players
-    have certain hands. 
+    played so far, and that are not known to be in this players hand, which
+    do not lead to impossible situations, such as players having played illegally. 
+    (Except for davonlaufen).
     """
     def __init__(self):
         super().__init__()

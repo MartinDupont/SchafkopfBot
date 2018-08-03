@@ -6,6 +6,7 @@ Created on Thu Aug  2 18:46:12 2018
 """
 
 import unittest
+import random
 from MCTSPlus import inverse_legal_moves, how_many, assign_hands
 from distribute_cards import distribute_cards
 from gamestate import GameState
@@ -46,6 +47,36 @@ class inverseLegal(unittest.TestCase):
             value = set(value)
             self.assertTrue(value.issubset(possibility))
         
+class handAssignmentsFullGames(unittest.TestCase):
     
-if __name__ == "__main__":
+    def test_full_game(self):
+        """ Test to see if during the course of a full game, we can correctly
+        deduce which cards the other player has. I'm undecided as to whether
+        we want this test to have a random element or not."""
+        # Random but fixed hands. 
+        hands = {0: {'SK_', 'S7_', 'H10', 'H7_', 'HK_', 'E8_', 'HU_', 'GU_'},
+                 1: {'G9_', 'HO_', 'S10', 'H9_', 'EO_', 'E10', 'GO_', 'GK_'},
+                 2: {'G10', 'SU_', 'G8_', 'E9_', 'G7_', 'SO_', 'S9_', 'S8_'},
+                 3: {'GA_', 'EU_', 'E7_', 'H8_', 'SA_', 'EA_', 'EK_', 'HA_'}}
+        
+        state = GameState(game_mode = "Herz Solo", offensive_player = 1, active=0)
+        
+        for _ in range(32):   
+            active = state.active
+            action = random.choice(state.actions(hands[active]))
+            hands[active].remove(action)
+            state = state.result(action)
+            
+            for i in range(4):
+                card_constraints = inverse_legal_moves(state, hands[i], i)
+                for p_num, card_set in card_constraints.items():
+                    actual_hand = hands[p_num]
+                    self.assertTrue(actual_hand.issubset(card_set))
+                    # after each play, check that the card constraints for each
+                    # active players perspective can possbly contain the opponents current_hand. 
+        
+    
+    
+    
+if __name__ == "__main__":    
     unittest.main()
