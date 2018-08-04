@@ -47,6 +47,28 @@ class inverseLegal(unittest.TestCase):
             value = set(value)
             self.assertTrue(value.issubset(possibility))
 
+class distributeCards(unittest.TestCase):
+    def test_case_1(self):
+        card_constraints = {0: {'EA_', 'SU_'}, 2: {'GK_', 'SU_'}, 3: {'EA_'}}
+        number_constraints = {0: 1, 2: 1, 3: 1}
+        assignment = distribute_cards(card_constraints, number_constraints)
+        expected = {0:{"SU_"}, 2:{"GK_"}, 3:{"EA_"}}
+        self.assertEqual(assignment, expected)
+
+    def test_case_2(self):
+        card_constraints = {0: {'GK_', 'G8_', 'H9_', 'H10'},
+                            2: {'GK_', 'G8_', 'EA_', 'EK_'},
+                            3: {'EA_', 'EK_'}}
+        number_constraints = {0: 2, 2: 2, 3: 2}
+        assignment = distribute_cards(card_constraints, number_constraints)
+        expected = {0: {'H9_', 'H10'},
+                    2: {'GK_', 'G8_'},
+                    3: {'EA_', 'EK_'}}
+        
+        self.assertEqual(assignment, expected)
+
+
+
 class checkCatchExceptions(unittest.TestCase):
     def test_1(self):
         """Give it an unsolveable set of constraints and see if an exception is 
