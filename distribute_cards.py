@@ -94,18 +94,17 @@ def distribute_cards(possible_cards_for_player, number_of_cards_for_player):
     return distributedCards
 
 if __name__ == "__main__":
-    for _ in range(1000):
 #        pcp = {1: [1,3,4,6,7,8,9], 2: [1,2,4,5,7,8,9], 3: [2,3,5]}
 #        ncp = {1: 3, 2: 3, 3: 3}
-#        print(distributeCards(pcp, ncp))
-        remaining_cards = ["H7", "H8", "H9", "H10", "HK", "HA",
-                           "E8", "E9", "S8", "S9", 
-                           "G8", "G9", "G10", "GA", "GK"]
-        pcp = {0: remaining_cards, 1: remaining_cards, 2: ["G8", "G9", "G10", "GA", "GK"]}
-        ncp = {0: 5, 1: 5, 2: 5}
+    pcp = {0: {'EA_', 'SU_'}, 2: {'GK_', 'SU_'}, 3: {'EA_'}}
+    ncp = {0: 1, 2: 1, 3: 1}
+    for _ in range(10):
         result = distribute_cards(pcp, ncp)
-        for key in ncp.keys():
-            try:
-                assert(len(result[key]) == ncp[key])
-            except:    
-                print(result)
+        print(result)
+        
+    pcp = {2: {'GK_', 'SU_'}, 3: {'EA_'}, 0: {'EA_', 'SU_'}}
+    ncp = {2: 1, 3: 1, 0: 1}
+    for _ in range(10):    
+        result = distribute_cards(pcp, ncp)
+        print(result)
+

@@ -12,9 +12,7 @@
 
 * Add a force_play to BaseBot for debugging. 
 
-# a step up in cleverness, is that once I have (otherplayersmayhave),
-# i can put set self.untried_actions as otherplayersmayhave, in the nodes.
-# Better! otherplayersmayhave should be stored IN the nodes, and updated iteratively, 
+# Otherplayersmayhave should be stored IN the nodes, and updated iteratively, 
 	rather than having to run through the whole game history every time!!!
 
 
@@ -22,6 +20,8 @@
 #Could however make a heuristic search robot which uses current points as heuristic. Must solve the CSP first. 
 
 # Put hardcoded rules for the gamestate in each new instance of a gamestate with the new function!!! 
+	That is to say, we need a factories which deliver different gamestates depending on the mode. (Do we? differences between states are minor).
+
 
 # Replace +-1 utilities with actual point values. 
 
@@ -42,4 +42,3 @@ ValueError: invalid literal for int() with base 10: ' '
 
 # Need more robust checks on gamesate
 
-# check: is there something wrong with possible_hands in expand_node??? returns dict with empty entries????

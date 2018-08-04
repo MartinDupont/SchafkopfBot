@@ -46,7 +46,7 @@ class DumbBot(BaseBot):
     """ Just plays randomly."""
             
     def play_or_not(self):
-        options = [True, False]
+        options = [True, True, True, False]
         return random.choice(options)
     
     def play_with(self, i): 
@@ -215,8 +215,8 @@ class MonteCarlo(DumbBot):
         self.root_node = None
         self.player_id = None
         
-    def play_or_not(self):
-        return False
+#    def play_or_not(self):
+#        return False
     
     # -------------------------  
     def tree_policy(self, node):

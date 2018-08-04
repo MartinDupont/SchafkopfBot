@@ -147,8 +147,8 @@ class MonteCarloPlus(DumbBot):
         self.root_node = None
         self.player_id = None
         
-    def play_or_not(self):
-        return False
+#    def play_or_not(self):
+#        return False
     
     # -------------------------  
     def tree_policy(self, node):
