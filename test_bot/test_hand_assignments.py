@@ -8,11 +8,13 @@ Created on Thu Aug  2 18:46:12 2018
 import unittest
 import random
 from MCTSPlus import inverse_legal_moves, how_many, assign_hands
-from distribute_cards import distribute_cards, trivial_solution
+from distribute_cards import distribute_cards, only_choice, only_choice_pairs, propagate_constraints
 from gamestate import GameState
 import copy
 
 class inverseLegal(unittest.TestCase):
+    """ Check that the function can correctly detect which cards cannot belong 
+    to certain players, and how many cards each player needs to be assigned. """
     def setUp(self):
         fixed_history = ["EO_", "HU_", "SU_", "E7_",
                          "EA_", "E10", "EK_", "S7_",
@@ -48,7 +50,24 @@ class inverseLegal(unittest.TestCase):
             value = set(value)
             self.assertTrue(value.issubset(possibility))
 
+class constraintPropagation(unittest.TestCase):
+    """ Check that my constraint propagation is working. Given a list of 
+    cards that the players may have, we can cross of certain possibilities."""
+    def test_1(self):
+        card_constraints = {0: {'SK_', 'S8_', 'H9_', 'H10'},
+                            2: {'SK_', 'S8_', 'EA_', 'EK_'},
+                            3: {'EA_', 'EK_'}}
+        number_constraints = {0: 2, 2: 2, 3: 2}
+        result = propagate_constraints(card_constraints, number_constraints)
+        expected = {0: {'H9_', 'H10'},
+                    2: {'SK_', 'S8_'},
+                    3: {'EA_', 'EK_'}}
+        self.assertEqual(result, expected)
+
+
 class distributeCards(unittest.TestCase):
+    """ We construct some cases in which there is only one possible assignment
+    of cards. """
     def test_case_1(self):
         card_constraints = {0: {'EA_', 'SU_'}, 2: {'GK_', 'SU_'}, 3: {'EA_'}}
         number_constraints = {0: 1, 2: 1, 3: 1}
@@ -73,17 +92,17 @@ class distributeCards(unittest.TestCase):
         number_constraints = {0: 1, 2: 1, 3: 1}
         pass
 
-    def test_trivial_solution(self):
-        card_constraints = {0: {'E8_', 'E9_', 'G10', 'G8_', 'G9_', 'GA_', 'GK_', 'H10',
-                                'H8_', 'H9_', 'HA_', 'HK_'},
-                            1: {'E8_', 'E9_', 'G10', 'G8_', 'G9_', 'GA_', 'GK_', 'H10',
-                                'H8_', 'H9_', 'HA_', 'HK_'},
-                            2: {'E8_', 'E9_', 'G10', 'G8_', 'G9_', 'GA_', 'GK_', 'H10',
-                                'H8_', 'H9_', 'HA_', 'HK_'}}
-        number_constraints = {0:4, 1:4, 2:4}
-        result = trivial_solution(card_constraints, number_constraints)
-        for key, value in result.items():
-            self.assertTrue(len(value) == 4)
+#    def test_trivial_solution(self):
+#        card_constraints = {0: {'E8_', 'E9_', 'G10', 'G8_', 'G9_', 'GA_', 'GK_', 'H10',
+#                                'H8_', 'H9_', 'HA_', 'HK_'},
+#                            1: {'E8_', 'E9_', 'G10', 'G8_', 'G9_', 'GA_', 'GK_', 'H10',
+#                                'H8_', 'H9_', 'HA_', 'HK_'},
+#                            2: {'E8_', 'E9_', 'G10', 'G8_', 'G9_', 'GA_', 'GK_', 'H10',
+#                                'H8_', 'H9_', 'HA_', 'HK_'}}
+#        number_constraints = {0:4, 1:4, 2:4}
+#        result = trivial_solution(card_constraints, number_constraints)
+#        for key, value in result.items():
+#            self.assertTrue(len(value) == 4)
         
     
 

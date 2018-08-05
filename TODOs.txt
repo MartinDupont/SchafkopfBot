@@ -43,6 +43,6 @@
 # Need to loop my assign_cards tests mutliple times, because the output is random!
 
 # Greedy hill-climbing works, but it is very slow and inefficient. Things:
-	1) Make it quicker
+	1) Make it quicker. Even possibly use new data types!
 	2) check that, if after passing the two solveability constraints, and propagating the two types of constraints, 
 	some sort of single-pass algorithm is guaranteed to work. 

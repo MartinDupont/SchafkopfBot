@@ -190,7 +190,7 @@ def all_combinations(solution, conflicted_cards, all_cards, cpc):
 
 
 def distribute_cards(card_constraints, number_constraints):
-
+    # -------------------------------------------------------------------------
     # Check if the task is possible, i.e. possible number of cards == cards needed.
     all_cards = set()
     for key, constraint in card_constraints.items():
@@ -203,12 +203,11 @@ def distribute_cards(card_constraints, number_constraints):
             n += number_constraints[k_2]
         assert (len(double_set) >= n), "Unsolveable conditions 2nd order."
         # make this look nice by doing set comprehension on chained sets!!!
-        
-        
         all_cards.update(set(constraint))
     n_possible_cards = len(all_cards)
     n_needed_cards = sum(number_constraints.values())
     assert (n_needed_cards == n_possible_cards), "Unsolveable conditions."
+    # -------------------------------------------------------------------------
 
     # Copy passed variables so that they are not changed
     card_cons = propagate_constraints(card_constraints, number_constraints)
@@ -217,20 +216,17 @@ def distribute_cards(card_constraints, number_constraints):
 
     #print(cpc)
     # Generate initial state in a dumb way
-    temp_solution = {}
+    solution = {}
     all_cards = list(all_cards)
     prev = 0
     for key, num in number_cons.items():
-        temp_solution[key] = set(all_cards[prev : prev + num])
+        for c in all_cards[prev : prev + num]:
+            solution[c] = {key}
         prev += num
  
-    solution = reorder_constraints(temp_solution)
-#    print(type(solution))
-#    print(solution)
+    #solution = reorder_constraints(temp_solution)
     conflicted_cards = conflicts(solution, cpc)
-    n_conflicts = len(conflicted_cards)
     while conflicted_cards:
-        climbed = False
         new_sol, new_conflicts = all_combinations(solution, conflicted_cards, all_cards, cpc)
         if new_sol:
             solution = new_sol
@@ -248,7 +244,7 @@ def distribute_cards(card_constraints, number_constraints):
             solution = try_swap(solution, c_1, c_2)
             conflicted_cards = conflicts(solution, cpc)
 
-        
+#    print(solution) 
     return reorder_constraints(solution)
     
 
@@ -257,17 +253,19 @@ def distribute_cards(card_constraints, number_constraints):
 
 ## =============================================================================
 
-def propagate_constraints(card_cons, number_cons):
-    """ 
+def only_choice(card_cons, number_cons):
+    """ If the size of one players allowed cards is equal to the number of
+    cards the player is to be given, then he must be given those cards, and
+    they can be removed from the hands of the other players. 
     """
     new_cards = copy.deepcopy(card_cons)
-    new_numbers = copy.deepcopy(number_cons)
-    keys = list(new_numbers.keys())
+    #new_numbers = copy.deepcopy(number_cons)
+    keys = list(number_cons.keys())
     # This should be replaced with something that skips empty sets. 
-    keys = keys+keys # this is hacky. 
+    #keys = keys+keys # this is hacky. 
     for key in keys:
         constraint = new_cards[key]
-        if len(constraint) == new_numbers[key]:
+        if len(constraint) == number_cons[key]:
             # if the only options for this guy are of equal length to the number he needs,
             # then those values cannot be in the other guys hands
             for key_2 in keys:
@@ -276,6 +274,44 @@ def propagate_constraints(card_cons, number_cons):
                     
     return new_cards
 
+
+def only_choice_pairs(card_cons, number_cons):
+    """ If between a pair of players, the size of the union of their possible cards is
+    exacly equal to the sum of the number of cards they are to be given, then
+    those cards must be shared between the two players, and they can be
+    eliminated from the possibilities of the other player"""
+    
+    new_cards = copy.deepcopy(card_cons)
+
+    keys = list(card_cons.keys())
+    for key in keys:
+        not_keys = [k for k in keys if k != key]
+        sum_n = 0
+        union_cons = set()
+        for k_2 in not_keys:
+            sum_n += number_cons[k_2]
+            union_cons.update(new_cards[k_2])
+            
+        if len(union_cons) == sum_n:
+            new_cards[key] -= union_cons
+    
+    return new_cards
+            
+            
+def propagate_constraints(card_cons, number_cons):
+    
+    stalled = False
+    old_cons = card_cons
+    while not stalled:
+        new_cons = only_choice(card_cons, number_cons)
+        new_cons = only_choice_pairs(new_cons, number_cons)
+        if new_cons == old_cons:
+            stalled = True
+        old_cons = new_cons
+    return new_cons
+          
+
+# ============================================================================
 
 
 def pick_biggest_double_set(double_sets):
@@ -383,10 +419,15 @@ if __name__ == "__main__":
            3: {'EA_', 'EK_'}}
     
     ncp = {0: 2, 2: 2, 3: 2} 
-    for _ in range(10):    
-        result = distribute_cards(pcp, ncp)       
+    import time
+    start = time.time()
+    for _ in range(1000):    
+        result = distribute_cards(pcp, ncp) 
+        
+    end= time.time()
+    print("Time for trial: "+str(end-start))
         
         
-        #print(result)
+    print(result)
 
 
