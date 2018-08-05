@@ -16,35 +16,35 @@ def reorder_constraints(card_constraints):
 
 
 
-def propagate_constraints(card_cons, number_cons):
-    """ 
-    """
-    new_cards = copy.deepcopy(card_cons)
-    new_numbers = copy.deepcopy(number_cons)
-    keys = list(new_numbers.keys())
-    # This should be replaced with something that skips empty sets. 
-    keys = keys+keys # this is hacky. 
-    for key in keys:
-        constraint = new_cards[key]
-        if len(constraint) == new_numbers[key]:
-            # if the only options for this guy are of equal length to the number he needs,
-            # then those values cannot be in the other guys hands
-            for key_2 in keys:
-                if key_2 != key:
-                    new_cards[key_2] -= constraint
-                    
-    # for all the cards in the reduced problem which only have 1 possibility,
-    # add them to the solution directly.
-    temp = reorder_constraints(new_cards)
-    pre_solution = {key: set() for key in new_numbers.keys()}
-    for card, p_ids in temp.items():
-        if len(p_ids) == 1:
-            p = p_ids.pop()
-            pre_solution[p].add(card)
-            new_numbers[p] -= 1 
-            for key in new_numbers.keys():
-                new_cards[key].discard(card)
-    return new_cards, new_numbers, pre_solution
+#def propagate_constraints(card_cons, number_cons):
+#    """ 
+#    """
+#    new_cards = copy.deepcopy(card_cons)
+#    new_numbers = copy.deepcopy(number_cons)
+#    keys = list(new_numbers.keys())
+#    # This should be replaced with something that skips empty sets. 
+#    keys = keys+keys # this is hacky. 
+#    for key in keys:
+#        constraint = new_cards[key]
+#        if len(constraint) == new_numbers[key]:
+#            # if the only options for this guy are of equal length to the number he needs,
+#            # then those values cannot be in the other guys hands
+#            for key_2 in keys:
+#                if key_2 != key:
+#                    new_cards[key_2] -= constraint
+#                    
+#    # for all the cards in the reduced problem which only have 1 possibility,
+#    # add them to the solution directly.
+#    temp = reorder_constraints(new_cards)
+#    pre_solution = {key: set() for key in new_numbers.keys()}
+#    for card, p_ids in temp.items():
+#        if len(p_ids) == 1:
+#            p = p_ids.pop()
+#            pre_solution[p].add(card)
+#            new_numbers[p] -= 1 
+#            for key in new_numbers.keys():
+#                new_cards[key].discard(card)
+#    return new_cards, new_numbers, pre_solution
 
 
 def check_consistent(solution, card_constraints, number_constraints): 
@@ -83,9 +83,9 @@ def trivial_solution(card_cons, number_cons):
         thing = list(superset)
         solution = {}
         prev = 0
-        for key, num in number_cons:
-            solution[key] = thing[prev : prev + num]
-            num = prev
+        for key, num in number_cons.items():
+            solution[key] = set(thing[prev : prev + num])
+            prev += num
         return solution
     else:
         return False
@@ -124,9 +124,9 @@ def search(card_cons, number_cons):
     if not check_solveable(card_cons, number_cons): # if it's not solveable, return False
         return False
     
-#        thing = trivial_solution(card_constraints, number_constraints)
-#        if thing:
-#            return thing
+    t = trivial_solution(card_cons, number_cons)
+    if t:
+        return t
     
 
     temp = reorder_constraints(card_cons)
@@ -151,75 +151,146 @@ def search(card_cons, number_cons):
         # if we find a solution at the bottom, we propagate back up the tree,
         # adding the assignments in as we go. At the top, we yield the full solution
 
-def distribute_cards(card_cons, number_cons):
-    solution = search(card_cons, number_cons)
-    if solution:
-        return solution
-    else:
-        assert (True == False)
+#def distribute_cards(card_cons, number_cons):
+#    solution = search(card_cons, number_cons)
+#    if solution:
+#        return solution
+#    else:
+#        assert (True == False)
 
 
 # =============================================================================
-#def distribute_cards(card_constraints, number_constraints):
-#    keys = list(number_constraints.keys())
-#
-#    # Check if the task is possible, i.e. possible number of cards == cards needed.
-#    superset = set()
-#    for key, constraint in card_constraints.items():
-#        assert( len(constraint) >= number_constraints[key]), "Unsolveable conditions."
-#        superset.update(set(constraint))
-#    n_possible_cards = len(superset)
-#    n_needed_cards = sum(number_constraints.values())
-#    assert (n_needed_cards == n_possible_cards), "Unsolveable conditions."
-#
-#    # Copy passed variables so that they are not changed
-#    pcp = copy.deepcopy(card_constraints)
-#    ncp = copy.deepcopy(number_constraints)
-#
-#    solution = {}
-#    single_sets = {
-#    keys[0]: list( pcp[keys[0]] - pcp[keys[1]] - pcp[keys[2]] ),
-#    keys[1]: list( pcp[keys[1]] - pcp[keys[0]] - pcp[keys[2]] ),
-#    keys[2]: list( pcp[keys[2]] - pcp[keys[0]] - pcp[keys[1]] ) }
-#    
-#    cpc = reorder_constraints(pcp)
-#    
-#    for key in keys:
-#        for card in single_sets[key]:
-#            solution[card] = key
-#            
-#    for card in superset:
-#        if not card in solution:
-#            p = max(ncp.keys(), key= lambda x: ncp[x])
-#            solution[card] = p
-#            ncp[p] -= 1
-#            
-#    # solution is now a locally assigned solution. 
-#    
-#    conflicted_cards = {card for card, p in solution.items() if not (p in cpc[key]) }
-#
-#    while confilcted_cards:
-#        c_1, c_2  = 1, 2
-#        
-#        # do we know that greedy search works???
-#
-#
+def conflicts(solution, cpc):
+    """ Takes reordered card conditions """
+    conflicted = []
+    for card, player in solution.items():
+        if not player.issubset(cpc[card]):
+            conflicted += [card]
+    return conflicted
+
+def try_swap(solution, c_1, c_2):
+    sol = copy.deepcopy(solution)
+    p_1, p_2 = sol[c_1], sol[c_2]
+    sol[c_1] = p_2
+    sol[c_2] = p_1
+    return sol
+
+def all_combinations(solution, conflicted_cards, all_cards, cpc):
+    for c_1 in conflicted_cards:
+        for c_2 in all_cards:
+            if c_1 != c_2:
+                new = try_swap(solution, c_1, c_2)
+                new_conflicts = conflicts(new, cpc)
+                if len(new_conflicts) < len(conflicted_cards):
+                    solution = new
+                    conflicted_cards = new_conflicts
+                    return solution, conflicted_cards
+                    
+    return None, None
+
+
+def distribute_cards(card_constraints, number_constraints):
+
+    # Check if the task is possible, i.e. possible number of cards == cards needed.
+    all_cards = set()
+    for key, constraint in card_constraints.items():
+        assert( len(constraint) >= number_constraints[key]), "Unsolveable conditions."
+        other_keys = [k for k in card_constraints.keys() if k !=  key]
+        double_set = set()
+        n = 0
+        for k_2 in other_keys:
+            double_set.update(card_constraints[k_2])
+            n += number_constraints[k_2]
+        assert (len(double_set) >= n), "Unsolveable conditions 2nd order."
+        # make this look nice by doing set comprehension on chained sets!!!
+        
+        
+        all_cards.update(set(constraint))
+    n_possible_cards = len(all_cards)
+    n_needed_cards = sum(number_constraints.values())
+    assert (n_needed_cards == n_possible_cards), "Unsolveable conditions."
+
+    # Copy passed variables so that they are not changed
+    card_cons = propagate_constraints(card_constraints, number_constraints)
+    number_cons = copy.deepcopy(number_constraints)
+    cpc = reorder_constraints(card_cons)
+
+    #print(cpc)
+    # Generate initial state in a dumb way
+    temp_solution = {}
+    all_cards = list(all_cards)
+    prev = 0
+    for key, num in number_cons.items():
+        temp_solution[key] = set(all_cards[prev : prev + num])
+        prev += num
+ 
+    solution = reorder_constraints(temp_solution)
+#    print(type(solution))
+#    print(solution)
+    conflicted_cards = conflicts(solution, cpc)
+    n_conflicts = len(conflicted_cards)
+    while conflicted_cards:
+        climbed = False
+        new_sol, new_conflicts = all_combinations(solution, conflicted_cards, all_cards, cpc)
+        if new_sol:
+            solution = new_sol
+            conflicted_cards = new_conflicts
+        
+        else:
+                        
+            print("==== no local improvement ======" )
+            print(conflicted_cards)
+            print(reorder_constraints(solution))
+            print(number_cons)
+            print(card_cons)
+            c_1 = random.choice(conflicted_cards)
+            c_2 = random.choice([card for card in all_cards if card != c_1])
+            solution = try_swap(solution, c_1, c_2)
+            conflicted_cards = conflicts(solution, cpc)
+
+        
+    return reorder_constraints(solution)
+    
+
+            
+
+
 ## =============================================================================
-#
-#
-#def pick_biggest_double_set(double_sets):
-#    keys = list( double_sets.keys() )
-#    random.shuffle(keys) # make random initial pick
-#    ret = keys[0]
-#    for key in keys:
-#        if len(double_sets[key]) > len(double_sets[ret]): ret = key
-#    return ret
-#
-#def append_card_decrease_count(card, key, distributedCards, number_of_cards_for_player):
-#    distributedCards[key].append(card)
-#    number_of_cards_for_player[key] = number_of_cards_for_player[key] - 1
-#
-#
+
+def propagate_constraints(card_cons, number_cons):
+    """ 
+    """
+    new_cards = copy.deepcopy(card_cons)
+    new_numbers = copy.deepcopy(number_cons)
+    keys = list(new_numbers.keys())
+    # This should be replaced with something that skips empty sets. 
+    keys = keys+keys # this is hacky. 
+    for key in keys:
+        constraint = new_cards[key]
+        if len(constraint) == new_numbers[key]:
+            # if the only options for this guy are of equal length to the number he needs,
+            # then those values cannot be in the other guys hands
+            for key_2 in keys:
+                if key_2 != key:
+                    new_cards[key_2] -= constraint
+                    
+    return new_cards
+
+
+
+def pick_biggest_double_set(double_sets):
+    keys = list( double_sets.keys() )
+    random.shuffle(keys) # make random initial pick
+    ret = keys[0]
+    for key in keys:
+        if len(double_sets[key]) > len(double_sets[ret]): ret = key
+    return ret
+
+def append_card_decrease_count(card, key, distributedCards, number_of_cards_for_player):
+    distributedCards[key].append(card)
+    number_of_cards_for_player[key] = number_of_cards_for_player[key] - 1
+
+
 #def distribute_cards(card_constraints, number_constraints):
 #    # card_constraints  - dict, keys: player number, values: list of possible cards for the player
 #    # number_constraints - dict, keys: player number, values: integer number of cards needed
@@ -235,6 +306,7 @@ def distribute_cards(card_cons, number_cons):
 #    n_needed_cards = sum(number_constraints.values())
 #    assert (n_needed_cards == n_possible_cards), "Unsolveable conditions."
 #
+#    card_constraints = propagate_constraints(card_constraints, number_constraints)
 #    # Copy passed variables so that they are not changed
 #    pcp = copy.deepcopy(card_constraints)
 #    ncp = copy.deepcopy(number_constraints)
@@ -262,7 +334,7 @@ def distribute_cards(card_cons, number_cons):
 #        ncp[key] = ncp[key] - len(single_sets[key])
 #
 #    # Repeat until the cards in double_sets are all distributed.
-#    for _ in range(np.sum(list(ncp.values())) - len(p123)):
+#    for _ in range(sum(list(ncp.values())) - len(p123)):
 #        key_pair = pick_biggest_double_set(double_sets)
 #        card = random.choice(double_sets[key_pair])
 #        double_sets[key_pair].remove(card)
@@ -284,24 +356,37 @@ def distribute_cards(card_cons, number_cons):
 #        elif ncp[keys[2]]:
 #            append_card_decrease_count(card, keys[2], distributedCards, ncp)
 #
+#    print(distributedCards)
 #    for key, value in distributedCards.items():    
-#        assert(set(value).issubset(possible_cards_for_player[key])), "Someone was given inconsistent cards."
-#        assert(len(value) == number_of_cards_for_player[key]), "Someone was given the wrong number of cards."
+#        assert(set(value).issubset(card_constraints[key])), "Someone was given inconsistent cards."
+#        assert(len(value) == number_constraints[key]), "Someone was given the wrong number of cards."
 #    
+#    distributedCards = {key:set(value) for key, value in distributedCards.items()}
 #    return distributedCards
 
-#if __name__ == "__main__":
-##        pcp = {1: [1,3,4,6,7,8,9], 2: [1,2,4,5,7,8,9], 3: [2,3,5]}
-##        ncp = {1: 3, 2: 3, 3: 3}
+if __name__ == "__main__":
+#        pcp = {1: [1,3,4,6,7,8,9], 2: [1,2,4,5,7,8,9], 3: [2,3,5]}
+#        ncp = {1: 3, 2: 3, 3: 3}
 #    pcp = {0: {'EA_', 'SU_'}, 2: {'GK_', 'SU_'}, 3: {'EA_'}}
 #    ncp = {0: 1, 2: 1, 3: 1}
 #    for _ in range(10):
 #        result = distribute_cards(pcp, ncp)
 #        print(result)
 #        
-#    pcp = {2: {'GK_', 'SU_'}, 3: {'EA_'}, 0: {'EA_', 'SU_'}}
-#    ncp = {2: 1, 3: 1, 0: 1}
-#    for _ in range(10):    
-#        result = distribute_cards(pcp, ncp)
-#        print(result)
+    pcp = {2: {'GK_', 'SU_'}, 3: {'EA_'}, 0: {'EA_', 'SU_'}}
+    ncp = {2: 1, 3: 1, 0: 1}
+    for _ in range(10):    
+        result = distribute_cards(pcp, ncp)
+        
+    pcp = {0: {'GK_', 'G8_', 'H9_', 'H10'},
+           2: {'GK_', 'G8_', 'EA_', 'EK_'},
+           3: {'EA_', 'EK_'}}
+    
+    ncp = {0: 2, 2: 2, 3: 2} 
+    for _ in range(10):    
+        result = distribute_cards(pcp, ncp)       
+        
+        
+        #print(result)
+
 

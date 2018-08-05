@@ -8,8 +8,9 @@ Created on Thu Aug  2 18:46:12 2018
 import unittest
 import random
 from MCTSPlus import inverse_legal_moves, how_many, assign_hands
-from distribute_cards import distribute_cards
+from distribute_cards import distribute_cards, trivial_solution
 from gamestate import GameState
+import copy
 
 class inverseLegal(unittest.TestCase):
     def setUp(self):
@@ -66,8 +67,25 @@ class distributeCards(unittest.TestCase):
                     3: {'EA_', 'EK_'}}
         
         self.assertEqual(assignment, expected)
+        
+    def test_case_3(self):
+        card_constraints = {0: {'EA_', 'SU_'}, 2: {'GK_', 'SU_'}, 3: {'EA_'}}
+        number_constraints = {0: 1, 2: 1, 3: 1}
+        pass
 
-
+    def test_trivial_solution(self):
+        card_constraints = {0: {'E8_', 'E9_', 'G10', 'G8_', 'G9_', 'GA_', 'GK_', 'H10',
+                                'H8_', 'H9_', 'HA_', 'HK_'},
+                            1: {'E8_', 'E9_', 'G10', 'G8_', 'G9_', 'GA_', 'GK_', 'H10',
+                                'H8_', 'H9_', 'HA_', 'HK_'},
+                            2: {'E8_', 'E9_', 'G10', 'G8_', 'G9_', 'GA_', 'GK_', 'H10',
+                                'H8_', 'H9_', 'HA_', 'HK_'}}
+        number_constraints = {0:4, 1:4, 2:4}
+        result = trivial_solution(card_constraints, number_constraints)
+        for key, value in result.items():
+            self.assertTrue(len(value) == 4)
+        
+    
 
 class checkCatchExceptions(unittest.TestCase):
     def test_1(self):
@@ -79,6 +97,21 @@ class checkCatchExceptions(unittest.TestCase):
                             2: {'G10', 'G8_', 'G9_', 'GA_', 'GK_'},
                             3: {'G10', 'G8_', 'G9_', 'GA_', 'GK_'}}
 
+        self.assertRaises(AssertionError,
+                          distribute_cards, card_constraints, number_constraints)
+        
+    def test_2(self): 
+        """ Test for a second-order unsolveability. Each of 2 or 3 alone could
+        be given 4 cards matching their constraints, but the two of them 
+        together cannot, becuase the union of their allowed_cards has len < 4+4.
+        """
+        number_constraints = {2: 4, 3: 4, 0: 5}
+        
+        card_constraints = {2: {'G7_', 'E10', 'E8_', 'HK_', 'G9_'},
+                            3: {'G7_', 'E10', 'E8_', 'HK_', 'G9_'},
+                            0: {'SU_', 'G7_', 'GU_', 'S9_', 'E10', 
+                                'S10', 'HO_', 'GO_', 'E8_', 'HK_',
+                                'S8_', 'S7_', 'G9_'}}
         self.assertRaises(AssertionError,
                           distribute_cards, card_constraints, number_constraints)
 
@@ -110,6 +143,29 @@ class handAssignmentsFullGames(unittest.TestCase):
                     self.assertTrue(actual_hand.issubset(card_set))
                     # after each play, check that the card constraints for each
                     # active players perspective can possbly contain the opponents current_hand. 
+                    
+                    
+    def test_full_game_2(self):
+            """ Test to see if during the course of a full game, we can correctly
+            deduce which cards the other player has. I'm undecided as to whether
+            we want this test to have a random element or not."""
+            # Random but fixed hands. 
+            hands = {0: {'SK_', 'S7_', 'H10', 'H7_', 'HK_', 'E8_', 'HU_', 'GU_'},
+                     1: {'G9_', 'HO_', 'S10', 'H9_', 'EO_', 'E10', 'GO_', 'GK_'},
+                     2: {'G10', 'SU_', 'G8_', 'E9_', 'G7_', 'SO_', 'S9_', 'S8_'},
+                     3: {'GA_', 'EU_', 'E7_', 'H8_', 'SA_', 'EA_', 'EK_', 'HA_'}}
+            
+            state = GameState(game_mode = "Herz Solo", offensive_player = 1, active=0)
+            
+            for _ in range(32):   
+                active = state.active
+                action = random.choice(state.actions(hands[active]))
+                hands[active].remove(action)
+                state = state.result(action)
+                
+                for i in range(4):                        
+                    arbitrary_assignment = assign_hands(state, hands[i],i )
+                    # try and assign some hands. If he can't find a solution, it will raise an exception. 
         
     
     
