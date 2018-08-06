@@ -51,3 +51,5 @@
 
 
 # SHould I merge how_many and inverse_legal_moves???? Im doing multiple passes through the state history (is short though)??
+
+# propagate_constraints in the nodes doesn't need to be making deepcopies! why am I being so paranoid?

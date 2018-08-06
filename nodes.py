@@ -25,21 +25,25 @@ def inverse_legal_moves(state, hand, p_id):
     hand = set(hand)
     other_players = [(i + p_id) % 4 for i in range(1, 4)]
     starting_set = set(con.ALL_CARDS) - hand
-    players_may_have = {p : copy.deepcopy(starting_set) for p in other_players}
+    card_constraints = {p : copy.deepcopy(starting_set) for p in other_players}
+    number_constraints = {p:8 for p in other_players}
+
     suits_mapping = con.SUITS_MAPPING[state.game_mode]
     # All other players start with all possible cards that are not in our hand.
     for round_str in state.split_by_stride(state.history, stride = 16):
         starting_suit = suits_mapping[round_str[1:4]]
         for p, card in state.player_card_tuples(round_str):
+            if p != p_id:
+                number_constraints[p] -= 1
             for p_num in other_players:
-                players_may_have[p_num].discard(card)
+                card_constraints[p_num].discard(card)
                 
             suit = suits_mapping[card]
             if (suit != starting_suit) and (p != p_id):
-                temp = {c for c in players_may_have[p] if  suits_mapping[c] != starting_suit}                
-                players_may_have[p] = temp
+                temp = {c for c in card_constraints[p] if  suits_mapping[c] != starting_suit}                
+                card_constraints[p] = temp
 
-    return players_may_have
+    return card_constraints, number_constraints
 
 
 def increment_legal_moves(state, card, players_may_have):
@@ -80,13 +84,12 @@ def how_many(state, p_id):
 def assign_hands(state, p_hand, p_id):
     """ Returns a dict of possible hands for a player given that we know
     the hand of player p_id. Returns only A plausible solution. """
-    number_constraints = how_many(state, p_id)
-    card_constraints = inverse_legal_moves(state, p_hand, p_id)
+    card_constraints, number_constraints = inverse_legal_moves(state, p_hand, p_id)
     result = distribute_cards(card_constraints, number_constraints)
     return result
 
 class Node:
-    def __init__(self, state, p_hand, p_id, players_may_have=None):
+    def __init__(self, state, p_hand, p_id):
         self.Q = 0
         self.N = 0
         self.children = {}
@@ -94,37 +97,22 @@ class Node:
         self.state = state
         self.p_hand = set(p_hand)
         self.p_id = p_id
-        if players_may_have == None:
-            card_constraints = inverse_legal_moves(state, p_hand, p_id)
-            number_constraints = how_many(state, p_id)
-            card_constraints = propagate_constraints(card_constraints, number_constraints)
-            if not check_solveable(card_constraints, number_constraints):
-                print("unsolveable")
-                assert(True == False)
-            self.players_may_have = card_constraints
-        else:
-            self.players_may_have = players_may_have
+        self.card_constraints, self.number_constraints = inverse_legal_moves(state, p_hand, p_id)
+        self.card_constraints = propagate_constraints(self.card_constraints, self.number_constraints)
+        if not check_solveable(self.card_constraints, self.number_constraints):
+            assert(True == False)
         
         if p_id == state.active:
             self.untried_actions = set(iter(state.actions(p_hand)))
         else:
-            self.untried_actions = copy.deepcopy(self.players_may_have[state.active])
+            self.untried_actions = copy.deepcopy(self.card_constraints[state.active])
             
     def add_child(self, action):
         new_hand = copy.deepcopy(self.p_hand)
         new_state = self.state.result(action)
         if self.state.active == self.p_id:
             new_hand.remove(action)
-            new_players_may_have = copy.deepcopy(self.players_may_have)
-        else:
-            new_players_may_have = increment_legal_moves(self.state, action, self.players_may_have)
-            number_constraints = how_many(new_state, self.p_id)
-            new_players_may_have = propagate_constraints(new_players_may_have, number_constraints)
-            if not check_solveable(new_players_may_have, number_constraints):
-                assert(True == False)
- 
-
-        new_node = Node(new_state, new_hand, self.p_id, new_players_may_have)
+        new_node = Node(new_state, new_hand, self.p_id)
         self.children[action] = new_node
         new_node.parent = self
         return new_node
@@ -168,6 +156,6 @@ class Node:
         return depth_util(self)
     
     def assign_hands(self):
-        result = distribute_cards(self.players_may_have, how_many(self.state, self.p_id), check = False)
+        result = distribute_cards(self.card_constraints, self.number_constraints, check = False)
         result[self.p_id] = copy.deepcopy(self.p_hand)
         return result

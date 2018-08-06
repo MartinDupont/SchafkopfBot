@@ -27,8 +27,8 @@ class inverseLegal(unittest.TestCase):
             state = state.result(c)
             
         self.state = state
-        self.card_constraints = inverse_legal_moves(state, hand, 0)
-        self.number_constraints = how_many(state, 0)
+        self.card_constraints, self.number_constraints = inverse_legal_moves(state, hand, 0)
+        #self.number_constraints = how_many(state, 0)
         
     def test_possible_moves(self):
         expected = {1: {'E8_', 'E9_', 'G10', 'G8_', 'G9_', 'GA_', 'GK_', 'H10',
@@ -156,7 +156,7 @@ class handAssignmentsFullGames(unittest.TestCase):
             state = state.result(action)
             
             for i in range(4):
-                card_constraints = inverse_legal_moves(state, hands[i], i)
+                card_constraints, _ = inverse_legal_moves(state, hands[i], i)
                 for p_num, card_set in card_constraints.items():
                     actual_hand = hands[p_num]
                     self.assertTrue(actual_hand.issubset(card_set))
