@@ -10,7 +10,8 @@ import constants as con
 import copy
 import random
 from bots import DumbBot
-from MCTSPlus import MonteCarloPlus, Node, assign_hands, how_many, inverse_legal_moves
+from MCTSPlus import MonteCarloPlus
+from nodes import Node, assign_hands, how_many, inverse_legal_moves
 from distribute_cards import distribute_cards
 
 game_mode = "Schellen Solo"
@@ -36,6 +37,7 @@ for i in range(32):
     active = state.active
     card = agents[active].play_card(state)
     state = state.result(card)
+
     
    # ==========================================================================#
 #bot = MonteCarloPlus()

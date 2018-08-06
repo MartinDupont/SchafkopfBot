@@ -46,3 +46,8 @@
 	1) Make it quicker. Even possibly use new data types!
 	2) check that, if after passing the two solveability constraints, and propagating the two types of constraints, 
 	some sort of single-pass algorithm is guaranteed to work. 
+	3) integrate all this into the node creation, so that I don't waste so much time redoing the calculations!
+	averaging 700 node expansions before optimizing. 
+
+
+# SHould I merge how_many and inverse_legal_moves???? Im doing multiple passes through the state history (is short though)??

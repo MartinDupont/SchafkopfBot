@@ -7,7 +7,7 @@ Created on Thu Aug  2 18:46:12 2018
 
 import unittest
 import random
-from MCTSPlus import inverse_legal_moves, how_many, assign_hands
+from nodes import inverse_legal_moves, how_many, assign_hands
 from distribute_cards import distribute_cards, only_choice, only_choice_pairs, propagate_constraints
 from gamestate import GameState
 import copy
@@ -116,7 +116,7 @@ class checkCatchExceptions(unittest.TestCase):
                             2: {'G10', 'G8_', 'G9_', 'GA_', 'GK_'},
                             3: {'G10', 'G8_', 'G9_', 'GA_', 'GK_'}}
 
-        self.assertRaises(AssertionError,
+        self.assertRaises(ValueError,
                           distribute_cards, card_constraints, number_constraints)
         
     def test_2(self): 
@@ -131,7 +131,7 @@ class checkCatchExceptions(unittest.TestCase):
                             0: {'SU_', 'G7_', 'GU_', 'S9_', 'E10', 
                                 'S10', 'HO_', 'GO_', 'E8_', 'HK_',
                                 'S8_', 'S7_', 'G9_'}}
-        self.assertRaises(AssertionError,
+        self.assertRaises(ValueError,
                           distribute_cards, card_constraints, number_constraints)
 
         

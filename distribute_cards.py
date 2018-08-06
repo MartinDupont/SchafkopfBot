@@ -4,7 +4,7 @@
 import random
 from collections import defaultdict
 import copy
-from itertools import cycle
+from itertools import chain
 
 def reorder_constraints(card_constraints):
     out = defaultdict(set)
@@ -57,22 +57,22 @@ def check_consistent(solution, card_constraints, number_constraints):
         return False
     return True
  
-def check_solveable(card_cons, number_cons):
-    """ Check that the supplied PARTIAL problem is solveable.
-    I have an inkling that between check_consistent, and check_solveable, 
-    one may be redundant. """
-    superset = set()
-    for key, constraint in card_cons.items():
-        if len(constraint) < number_cons[key]:
-            return False
-        superset.update(set(constraint))
-     
-    n_possible_cards = len(superset)
-    n_needed_cards = sum(number_cons.values())
-    if not(n_needed_cards == n_possible_cards):
-        return False
-    
-    return True 
+#def check_solveable(card_cons, number_cons):
+#    """ Check that the supplied PARTIAL problem is solveable.
+#    I have an inkling that between check_consistent, and check_solveable, 
+#    one may be redundant. """
+#    superset = set()
+#    for key, constraint in card_cons.items():
+#        if len(constraint) < number_cons[key]:
+#            return False
+#        superset.update(set(constraint))
+#     
+#    n_possible_cards = len(superset)
+#    n_needed_cards = sum(number_cons.values())
+#    if not(n_needed_cards == n_possible_cards):
+#        return False
+#    
+#    return True 
 
 def trivial_solution(card_cons, number_cons):
     """ Check if the supplied PARTIAL problem may be solved trivially."""
@@ -189,26 +189,40 @@ def all_combinations(solution, conflicted_cards, all_cards, cpc):
     return None, None
 
 
-def distribute_cards(card_constraints, number_constraints):
-    # -------------------------------------------------------------------------
-    # Check if the task is possible, i.e. possible number of cards == cards needed.
+def check_solveable(card_cons, number_cons):
+    """ Check that the supplied problem is solveable. """
     all_cards = set()
-    for key, constraint in card_constraints.items():
-        assert( len(constraint) >= number_constraints[key]), "Unsolveable conditions."
-        other_keys = [k for k in card_constraints.keys() if k !=  key]
+    for key, constraint in card_cons.items():
+        if len(constraint) < number_cons[key]:
+            return False
+        
+        other_keys = [k for k in card_cons.keys() if k !=  key]
         double_set = set()
         n = 0
         for k_2 in other_keys:
-            double_set.update(card_constraints[k_2])
-            n += number_constraints[k_2]
-        assert (len(double_set) >= n), "Unsolveable conditions 2nd order."
+            double_set.update(card_cons[k_2])
+            n += number_cons[k_2]
+        if len(double_set) < n:
+            return False
         # make this look nice by doing set comprehension on chained sets!!!
         all_cards.update(set(constraint))
     n_possible_cards = len(all_cards)
-    n_needed_cards = sum(number_constraints.values())
-    assert (n_needed_cards == n_possible_cards), "Unsolveable conditions."
+    n_needed_cards = sum(number_cons.values())
+    if not (n_needed_cards == n_possible_cards):
+        return False
+    return True
+
+
+
+def distribute_cards(card_constraints, number_constraints, check=True):
+    # -------------------------------------------------------------------------
+    # Check if the task is possible, i.e. possible number of cards == cards needed.
+    if check:
+        if not check_solveable(card_constraints, number_constraints):
+            raise ValueError("Unsolveable Conditions")
     # -------------------------------------------------------------------------
 
+    all_cards = {c for c in chain(*card_constraints.values())}
     # Copy passed variables so that they are not changed
     card_cons = propagate_constraints(card_constraints, number_constraints)
     number_cons = copy.deepcopy(number_constraints)
@@ -299,15 +313,8 @@ def only_choice_pairs(card_cons, number_cons):
             
             
 def propagate_constraints(card_cons, number_cons):
-    
-    stalled = False
-    old_cons = card_cons
-    while not stalled:
-        new_cons = only_choice(card_cons, number_cons)
-        new_cons = only_choice_pairs(new_cons, number_cons)
-        if new_cons == old_cons:
-            stalled = True
-        old_cons = new_cons
+    new_cons = only_choice(card_cons, number_cons)
+    new_cons = only_choice_pairs(new_cons, number_cons)
     return new_cons
           
 
