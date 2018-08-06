@@ -25,8 +25,8 @@ def inverse_legal_moves(state, hand, p_id):
     hand = set(hand)
     other_players = [(i + p_id) % 4 for i in range(1, 4)]
     starting_set = set(con.ALL_CARDS) - hand
-    card_constraints = {p : copy.deepcopy(starting_set) for p in other_players}
-    number_constraints = {p:8 for p in other_players}
+    card_constraints = {p: set(starting_set) for p in other_players}
+    number_constraints = {p :8 for p in other_players}
 
     suits_mapping = con.SUITS_MAPPING[state.game_mode]
     # All other players start with all possible cards that are not in our hand.
@@ -66,20 +66,20 @@ def increment_legal_moves(state, card, players_may_have):
 
 
 
-def how_many(state, p_id):
-    """ Determines how many cards each player should have in their hand.
-    Returns
-    -------
-    dict
-        A dict mapping player number to number of required cards. 
-    """
-    other_players = [(i + p_id) % 4 for i in range(1, 4)]
-    counts = {p:8 for p in other_players}
-    for p, card in state.player_card_tuples(state.history):
-        if p != p_id:
-            counts[p] -= 1
-        
-    return counts
+#def how_many(state, p_id):
+#    """ Determines how many cards each player should have in their hand.
+#    Returns
+#    -------
+#    dict
+#        A dict mapping player number to number of required cards. 
+#    """
+#    other_players = [(i + p_id) % 4 for i in range(1, 4)]
+#    counts = {p:8 for p in other_players}
+#    for p, card in state.player_card_tuples(state.history):
+#        if p != p_id:
+#            counts[p] -= 1
+#        
+#    return counts
     
 def assign_hands(state, p_hand, p_id):
     """ Returns a dict of possible hands for a player given that we know
@@ -105,10 +105,10 @@ class Node:
         if p_id == state.active:
             self.untried_actions = set(iter(state.actions(p_hand)))
         else:
-            self.untried_actions = copy.deepcopy(self.card_constraints[state.active])
+            self.untried_actions = set(self.card_constraints[state.active])
             
     def add_child(self, action):
-        new_hand = copy.deepcopy(self.p_hand)
+        new_hand = set(self.p_hand)
         new_state = self.state.result(action)
         if self.state.active == self.p_id:
             new_hand.remove(action)
@@ -157,5 +157,5 @@ class Node:
     
     def assign_hands(self):
         result = distribute_cards(self.card_constraints, self.number_constraints, check = False)
-        result[self.p_id] = copy.deepcopy(self.p_hand)
+        result[self.p_id] = set(self.p_hand)
         return result

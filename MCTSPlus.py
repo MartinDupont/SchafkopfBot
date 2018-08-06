@@ -5,15 +5,11 @@ Created on Thu Aug  2 18:46:15 2018
 @author: martin
 """
 import constants as con
-from bots import DumbBot, unplayed_cards
+from bots import DumbBot
 from nodes import Node
-import copy
 import time
 import math
 import random
-
-
-
 
 
 class MonteCarloPlus(DumbBot):
@@ -47,7 +43,7 @@ class MonteCarloPlus(DumbBot):
                     continue
             else:
                 node, _ = self.best_child(node)
-        return node , node.state.utilities()  
+        return node, node.state.utilities()  
     
     def default_policy(self, state, possible_hands):
         """ Given some consistent assignment of hands, each player then 
@@ -66,7 +62,7 @@ class MonteCarloPlus(DumbBot):
         return state.utilities()
     
     def back_up(self, node, utils):
-        """back_up function is unchanged from standard implementation"""
+        """Backup function is unchanged from standard MCTS implementation."""
         while not(node.parent is None):
             p_num = node.parent.state.active
             node.N += 1
@@ -85,7 +81,8 @@ class MonteCarloPlus(DumbBot):
 
     # ----------------------------------
     def best_child(self, node, c=math.sqrt(2)):
-        """ has been checked, is delivering the best children, given the inputs"""    
+        """ Calculates the formula for MCTS to find the child node with 
+        the highest probability of winning. """    
         best_action, best_node = max(node.children.items(),
                           key=lambda x: (x[1].Q / x[1].N) 
                           + (c * math.sqrt(2 * math.log(node.N) / x[1].N)))
@@ -110,7 +107,7 @@ class MonteCarloPlus(DumbBot):
             choice = action
             t = time.time() - start
             i+=1
-
+        print("====================")
         print("Depth: "+str(depth))
         print("N cycles: "+str(i))
         self.hand.remove(choice)

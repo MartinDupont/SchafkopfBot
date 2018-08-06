@@ -9,10 +9,11 @@ from environments import Arena
 
 botstring = ["MCTS", "MCTSPLUS", "DUMB", "DUMB"]
 #botstring = ["MCTS", "DUMB", "DUMB", "DUMB"]
+botstring = ["MCTSPLUS", "MCTSPLUS", "MCTSPLUS", "MCTSPLUS" ]
 
 arena = Arena(botstring)
 
-for i in range(1000):
+for i in range(10):
     arena.new_game()
 
     print("Round end total points:")  

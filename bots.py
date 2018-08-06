@@ -7,7 +7,6 @@ Created on Tue Jun 19 12:42:28 2018
 
 import random
 import copy
-import numpy as np
 import constants as con
 import math
 import time
@@ -281,23 +280,8 @@ class MonteCarlo(DumbBot):
             choice = action
             t = time.time() - start
             i+=1
-        #print("Depth: "+str(depth))
-        #print("N cycles: "+str(i))
         self.hand.remove(choice)
         return choice
 
 
-#class MonteCarloPlus(MonteCarlo):
-#    def default_policy(self, state, hand, p_id):
-#        # I think, assigning people random consistent hands would be better 
-#        # than this. These predictions are way off. 
-#        hand = set(hand)
-#        while not state.terminal_test():
-#            active = state.active
-#            if p_id == active:
-#                action = random.choice(state.actions(hand))
-#                hand.remove(action)
-#            else:
-#                action = random.choice(list(unplayed_cards(state, hand)))
-#            state = state.result(action)
-#        return state.utilities_test()      
+   

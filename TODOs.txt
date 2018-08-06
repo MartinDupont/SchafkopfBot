@@ -38,7 +38,8 @@
 
 # Need more robust checks on gamesate
 
-# move the constraint propagation to inside the nodes, that will cut down the search space massively! Averaging about 2000 node expansions before the change. 
+# move the constraint propagation to inside the nodes, that will cut down the search space massively! 
+	Currently getting about 900 node expansions at the first move.  
 
 # Need to loop my assign_cards tests mutliple times, because the output is random!
 
@@ -49,7 +50,4 @@
 	3) integrate all this into the node creation, so that I don't waste so much time redoing the calculations!
 	averaging 700 node expansions before optimizing. 
 
-
-# SHould I merge how_many and inverse_legal_moves???? Im doing multiple passes through the state history (is short though)??
-
-# propagate_constraints in the nodes doesn't need to be making deepcopies! why am I being so paranoid?
+currently getting about 900 node expansions at the start. Need to reorder my nodes to that creating ch

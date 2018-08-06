@@ -7,7 +7,7 @@ Created on Thu Aug  2 18:46:12 2018
 
 import unittest
 import random
-from nodes import inverse_legal_moves, how_many, assign_hands
+from nodes import inverse_legal_moves, assign_hands
 from distribute_cards import distribute_cards, only_choice, only_choice_pairs, propagate_constraints
 from gamestate import GameState
 import copy
