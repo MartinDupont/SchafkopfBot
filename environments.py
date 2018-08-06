@@ -6,7 +6,6 @@ Created on Tue Jun 19 14:49:51 2018
 """
 
 import constants as con
-import copy
 from random import shuffle
 from bots import DumbBot, ProxyBot, MonteCarlo
 from MCTSPlus import MonteCarloPlus
@@ -35,7 +34,7 @@ class Arena:
             except KeyError:
                 raise ValueError("{} is not a valid bot name".format(bot_string))
                 
-        self.deck = copy.deepcopy(con.ALL_CARDS)
+        self.deck = list(con.ALL_CARDS)
         self.points_totals = {0:0, 1:0, 2:0, 3:0}
     
     def deal_cards(self):

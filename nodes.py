@@ -30,18 +30,22 @@ def inverse_legal_moves(state, hand, p_id):
 
     suits_mapping = con.SUITS_MAPPING[state.game_mode]
     # All other players start with all possible cards that are not in our hand.
-    for round_str in state.split_by_stride(state.history, stride = 16):
-        starting_suit = suits_mapping[round_str[1:4]]
-        for p, card in state.player_card_tuples(round_str):
-            if p != p_id:
-                number_constraints[p] -= 1
-            for p_num in other_players:
-                card_constraints[p_num].discard(card)
-                
+    count = 0
+    for p, card in state.player_card_tuples(state.history):
+        if count == 0:
+            starting_suit = suits_mapping[card]
+            
+        for p_2 in other_players:
+            card_constraints[p_2].discard(card)
+            
+        if p != p_id:
+            number_constraints[p] -= 1    
             suit = suits_mapping[card]
             if (suit != starting_suit) and (p != p_id):
                 temp = {c for c in card_constraints[p] if  suits_mapping[c] != starting_suit}                
                 card_constraints[p] = temp
+    
+        count = (count + 1) % 4     
 
     return card_constraints, number_constraints
 

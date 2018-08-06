@@ -101,14 +101,14 @@ class MonteCarloPlus(DumbBot):
         depth = 0
         while t < 2:
             v, utils = self.tree_policy(self.root_node)
-            depth = max((depth, v.depth()))
+#            depth = max((depth, v.depth()))
             self.back_up(v, utils)
             node, action = self.best_child(self.root_node, 0)
             choice = action
             t = time.time() - start
-            i+=1
-        print("====================")
-        print("Depth: "+str(depth))
-        print("N cycles: "+str(i))
+#            i+=1
+#        print("====================")
+#        print("Depth: "+str(depth))
+#        print("N cycles: "+str(i))
         self.hand.remove(choice)
         return choice

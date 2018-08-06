@@ -8,7 +8,6 @@ Created on Thu Jul 26 15:59:16 2018
 #from typing import NamedTuple
 from collections import namedtuple
 import constants as con
-import copy
 
 class GameState(namedtuple('GameState', ['game_mode', 'offensive_player',
                                          'active', "history", "player_points"])
@@ -170,8 +169,6 @@ class GameState(namedtuple('GameState', ['game_mode', 'offensive_player',
             A new state object with the input move applied.
         """
         if not (action in con.ALL_CARDS):
-            print(type(action))
-            print(action)
             raise ValueError("{} is not a valid action.".format(action))
         
         new_history = self.history+str(self.active)+action
@@ -220,15 +217,15 @@ class GameState(namedtuple('GameState', ['game_mode', 'offensive_player',
                   readable if suit_dictionary[tup[1]] == "Truempfe"]
  
         if trumps:
-            winning_player =  sorted(trumps, key=lambda x:
-                            trump_ordering.index(x[1]),reverse=True)[0][0]
+            winning_player =  max(trumps, key=lambda x:
+                            trump_ordering.index(x[1]))[0]
             # extract the player number
         else:
             # If no trumps, the highest card matching the suit will win. 
             correct_suit_cards = [tup for tup in readable
                                   if suit_dictionary[tup[1]] == suit]
-            winning_player = sorted(correct_suit_cards, key=lambda x:
-                card_ordering.index(x[1][1:]), reverse=True)[0][0] 
+            winning_player = max(correct_suit_cards, key=lambda x:
+                card_ordering.index(x[1][1:]))[0] 
             
         points = sum(con.POINTS[c] for p, c in readable)
         return int(winning_player), points

@@ -3,9 +3,6 @@
 
 * Separate contsants.py and move functions to utils.py
 
-* make sketch code for a play loop for each mode.
-
-
 * Implement suit_mapping as a named tuple?!?!?!
 
 *TODO: AM i allowed to open with the called ace?
@@ -33,21 +30,13 @@
 
 # get consistent naming p_id vs p_num etc. 
 
-
-# TODO: one of the assertions in distribute_cards is probably unnecessary. 
-
 # Need more robust checks on gamesate
 
-# move the constraint propagation to inside the nodes, that will cut down the search space massively! 
-	Currently getting about 900 node expansions at the first move.  
+# Change node creation so that the card_constraints are updated iteratively!. This should save time. Currently averaging 900 node expansions on first move. 
+ 
 
-# Need to loop my assign_cards tests mutliple times, because the output is random!
+# winning_player in gamestate can be replaced by a dictionary which maps card to priority. Changes O(n) runtime to O(1).
 
-# Greedy hill-climbing works, but it is very slow and inefficient. Things:
-	1) Make it quicker. Even possibly use new data types!
-	2) check that, if after passing the two solveability constraints, and propagating the two types of constraints, 
-	some sort of single-pass algorithm is guaranteed to work. 
-	3) integrate all this into the node creation, so that I don't waste so much time redoing the calculations!
-	averaging 700 node expansions before optimizing. 
+# Distribute_cards takes up 25% of TOTAL RUNTIME. NEED TO MAKE THIS FASTER.
 
-currently getting about 900 node expansions at the start. Need to reorder my nodes to that creating ch
+# Make an experiment to measure the average branching factor!!!!!! want to know!

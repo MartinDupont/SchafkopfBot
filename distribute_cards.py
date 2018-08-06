@@ -66,7 +66,8 @@ def only_choice(card_cons, number_cons, inplace = False):
     they can be removed from the hands of the other players. 
     """
     if inplace:
-        card_cons = copy.deepcopy(card_cons)
+        #card_cons = copy.deepcopy(card_cons)
+        card_cons = {k: set(v) for k, v in card_cons.items()}
     #new_numbers = copy.deepcopy(number_cons)
     keys = list(number_cons.keys())
     # This should be replaced with something that skips empty sets. 
@@ -90,7 +91,8 @@ def only_choice_pairs(card_cons, number_cons, inplace = False):
     eliminated from the possibilities of the other player."""
     
     if inplace:
-        card_cons = copy.deepcopy(card_cons)
+        #card_cons = copy.deepcopy(card_cons)
+        card_cons = {k: set(v) for k, v in card_cons.items()}
 
     keys = list(card_cons.keys())
     for key in keys:

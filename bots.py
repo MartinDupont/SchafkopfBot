@@ -6,10 +6,10 @@ Created on Tue Jun 19 12:42:28 2018
 """
 
 import random
-import copy
 import constants as con
 import math
 import time
+import copy
 
 class BaseBot():
     def __init__(self):
@@ -125,7 +125,7 @@ class ProxyBot(BaseBot):
 # =============================================================================
  
 def unplayed_cards(state, hand):
-    unplayed = set(copy.deepcopy(con.ALL_CARDS))
+    unplayed = set(con.ALL_CARDS)
     for p, card in state.player_card_tuples(state.history):
         unplayed.remove(card)
         
@@ -151,7 +151,7 @@ class Node:
             self.untried_actions = unplayed_cards(state, p_hand)
             
     def add_child(self, action):
-        new_hand = copy.deepcopy(self.p_hand)
+        new_hand = set(self.p_hand)
         if self.state.active == self.p_id:
             new_hand.remove(action)
         new_state = self.state.result(action)
