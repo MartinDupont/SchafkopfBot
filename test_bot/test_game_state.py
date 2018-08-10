@@ -125,7 +125,7 @@ class CheckRoundPoints(unittest.TestCase):
             state = state.result(card)
         
         utility = state.utilities()
-        expected = (1, -1, -1, -1)
+        expected = (1, 0, 0, 0)
         self.assertEqual(utility, expected)
         
 class CheckRamsch(unittest.TestCase):
@@ -146,7 +146,7 @@ class CheckRamsch(unittest.TestCase):
         for card in fixed_history:
             state = state.result(card)
         utility = state.utilities()
-        expected = (-1, 1, 1, 1)
+        expected = (0, 1, 1, 1)
         self.assertEqual(utility, expected)
 
 

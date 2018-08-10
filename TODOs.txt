@@ -32,6 +32,8 @@
 
 # Need more robust checks on gamesate
 
+# Idea, add winner_points variable to the utility function so that running tallies remain zero sum. 
+
 # Change node creation so that the card_constraints are updated iteratively!. This should save time. Currently averaging 900 node expansions on first move. 
  
 
@@ -40,3 +42,11 @@
 # Distribute_cards takes up 25% of TOTAL RUNTIME. NEED TO MAKE THIS FASTER.
 
 # Make an experiment to measure the average branching factor!!!!!! want to know!
+
+# HumanInterface needs to work properly. Needs to print at every round who the active player is.
+
+# Proxybots need to print which player number they are during every hand. 
+
+# STATE NEEDS TO CHECK IF THE PLAYERS HAVE PLAYED IN A GOOD ORDER.
+
+# BOt needs much more robust checks for card input. Check that given hand is the right length. 

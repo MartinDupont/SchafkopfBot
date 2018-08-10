@@ -87,16 +87,40 @@ class Arena:
             card = self.agents[active].play_card(state)
             state = state.result(card)
         
+        game_points = self.winner_game_points(state.utilities())
         for i in range(4):
-            self.points_totals[i] += state.utilities()[i]
+            self.points_totals[i] += game_points[i]
         if verbose:
             print(state)
         # update points totals.
+        
+        
+    def winner_game_points(self, utils):
+        """ The amount of points players win by winning one game is NOT the 
+        same as the number of points which they won from cards during the game. 
+        A separate points tally is maintained between rounds, which is designed
+        such that the points between rounds are zero-sum, and thus the game may
+        be played for money."""
+        n_winners = sum(utils)
+        if n_winners == 1:
+            win_points = 3
+            lose_points = -1
+        
+        elif n_winners == 2:
+            win_points = 1
+            lose_points = -1
+        else:
+            win_points = 1
+            lose_points = -3
+        
+        results = tuple(win_points if i == 1 else lose_points for i in utils)
+        return results
+            
 
 class HumanInterface(Arena):
     """ Version of the arena that is used to play a chosen robot against 3 other
     human players at a card table. Has an interactive input feature."""
-    def __init__(self, bot_name, p=0):
+    def __init__(self, bot_name, p=0, comes_out =0 ):
         b_list = []
         for i in range(4):
             if i == p:
@@ -104,7 +128,7 @@ class HumanInterface(Arena):
             else:
                 b_list += ["PROXY"]
         self.real_player = p
-        super().__init__(b_list)
+        super().__init__(b_list, comes_out)
 
         
     # must override player initializaition.

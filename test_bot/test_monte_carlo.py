@@ -77,10 +77,10 @@ class TestMonteCarlo(unittest.TestCase):
         # MCTS, the bot will not explore the whole final game tree, just the
         # most promising branches. 
         self.assertTrue(node_1.state.terminal_test())
-        self.assertEqual(node_1.state.utilities(), (1,-1,-1,-1))
+        self.assertEqual(node_1.state.utilities(), (1, 0, 0, 0))
         
         self.assertTrue(node_2.state.terminal_test())
-        self.assertEqual(node_2.state.utilities(), (1,-1,-1,-1))
+        self.assertEqual(node_2.state.utilities(), (1, 0, 0, 0))
         
         self.assertEqual(set(root_node.children.keys()), hand)
         

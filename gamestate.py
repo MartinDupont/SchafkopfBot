@@ -278,16 +278,17 @@ class GameState(namedtuple('GameState', ['game_mode', 'offensive_player',
         else:
             return tuple(-1 if i in offensive_team else 1 for i in range(4))
         
-    def utilities_test(self):
+    def utilities_points(self):
         """ 
         Testing if a different utility function improves my MCTS bots.
         """
-
+        # if i want this to return partial utilities, then i need to change the return at the bottom.
+        # and a lot more stuff. 
         if not self.terminal_test():
             return (0, 0, 0, 0)
         
         if self.game_mode == "Ramsch":
-            return tuple(-p for p in self.player_points)
+            return tuple(p for p in self.player_points)
 
         elif self.partner_game():
             offensive_team = (self.offensive_player, self.played_the_ace())
@@ -299,8 +300,45 @@ class GameState(namedtuple('GameState', ['game_mode', 'offensive_player',
         
         return tuple(off_points if i in offensive_team else def_points for i in range(4))
 
+     
+    def is_decided(self):
+        """ In schafkopf, a game may be decided before the game is over. Note,
+        that this does not immediately end the game, as it is the responsibility
+        of the players to keep count of the points. In addition, a bigger 
+        prize is awarded for winning by over 90 points."""
         
+        if self.game_mode =="Ramsch":
+            remaining = 120 - sum(self.player_points)
+            rank = sorted(self.player_points, reverse = True)
+            first, second = rank[0], rank[1]
+            
+            if first - second > remaining:
+                return True
+            return False
         
+        if self.partner_game():
+            if self.played_the_ace():
+                offensive_team = (self.offensive_player, self.played_the_ace())
+            else:
+                if any(self.player_points > 60): 
+                    return True
+                return False
+        else:
+            offensive_team = (self.offensive_player,)
+            
+        defensive_team = (i for i in range(4) if not i in offensive_team)
+                
+        cond_1 = sum(self.player_points[i] for i in offensive_team) >= 61
+        cond_2 = sum(self.player_points[i] for i in defensive_team) >= 60
+        if cond_1 or cond_2:
+            return True
+                
+        return False
+                
+                
+                
+                
+                
     def __str__(self):
         outstring =  "============== New Game =============\n"
         if self.game_mode == "Ramsch":
@@ -324,7 +362,7 @@ class GameState(namedtuple('GameState', ['game_mode', 'offensive_player',
             outstring += "\n====================================="
             utility = self.utilities()
             winners = [str(i) for i in range(4) if utility[i] == 1]
-            losers = [str(i) for i in range(4) if utility[i] == -1]
+            losers = [str(i) for i in range(4) if utility[i] == 0]
             win_points = sum(self.player_points[int(i)] for i in winners)
             outstring += ("\nWinners: "+" ".join(winners)).ljust(16) +"Total points: {}".format(win_points)
             outstring += ("\nLosers : "+" ".join(losers)).ljust(16) +"Total points: {}".format(120 - win_points)

@@ -13,8 +13,8 @@ botstring = ["MCTS", "MCTSPLUS", "DUMB", "DUMB"]
 
 arena = Arena(botstring)
 
-for i in range(500):
-    arena.new_game(verbose = False)
+for i in range(1):
+    arena.new_game(verbose = True)
 
     print("Round end total points:")  
     print(arena.points_totals)
@@ -24,9 +24,9 @@ dumb_v_smart = arena.points_totals
     
 botstring = ["MCTSPLUS", "MCTSPLUS", "MCTS", "MCTS" ]
 
-
-for i in range(250):
-    arena.new_game(verbose = False)
+arena = Arena(botstring)
+for i in range(1):
+    arena.new_game(verbose = True)
 
     print("Round end total points:")  
     print(arena.points_totals)
