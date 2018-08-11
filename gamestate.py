@@ -263,7 +263,7 @@ class GameState(namedtuple('GameState', ['game_mode', 'offensive_player',
         
         if self.game_mode == "Ramsch":
             max_score = max(self.player_points)
-            return tuple(-1 if p == max_score else 1 for p in self.player_points)
+            return tuple(0 if p == max_score else 1 for p in self.player_points)
             # Also covers the case of a tie.
         elif self.partner_game():
             offensive_team = (self.offensive_player, self.played_the_ace())
@@ -274,9 +274,9 @@ class GameState(namedtuple('GameState', ['game_mode', 'offensive_player',
         def_points = 120 - off_points        
         
         if off_points >= 61:
-            return tuple(1 if i in offensive_team else -1 for i in range(4))
+            return tuple(1 if i in offensive_team else 0 for i in range(4))
         else:
-            return tuple(-1 if i in offensive_team else 1 for i in range(4))
+            return tuple(0 if i in offensive_team else 1 for i in range(4))
         
     def utilities_points(self):
         """ 

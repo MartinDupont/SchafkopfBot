@@ -150,6 +150,43 @@ class CheckRamsch(unittest.TestCase):
         self.assertEqual(utility, expected)
 
 
+class CheckIsDecided(unittest.TestCase):
+    def check_solo(self):
+        """ Do a Solo in which the first guy definitely wins before the game is over."""
+        state = GameState(game_mode = "Herz Solo", offensive_player = 0, active=0)
+        fixed_history = ["EO_", "GO_", "HO_", "SO_",
+                         "EU_", "GU_", "HU_", "SU_",
+                         "HA_", "H10", "HK_", "H9_",
+                         "EA_", "E10", "EK_", "E9_"]
+        
+        for card in fixed_history:
+            state = state.result(card)
+        
+        self.assertTrue(state.is_decided())
+        
+    def check_ramsch(self):
+        """Do a ramsch in which the first guy has lost before the game is over."""
+        state = GameState(game_mode = "Ramsch", offensive_player = 0, active=0)
+        fixed_history = ["EO_", "GO_", "HO_", "SO_",
+                         "EU_", "GU_", "HU_", "SU_",
+                         "HA_", "H10", "HK_", "H9_",
+                         "EA_", "E10", "EK_", "E9_"]
+        
+        for card in fixed_history:
+            state = state.result(card)
+        
+        self.assertTrue(state.is_decided())
+        
+    def check_partner(self):
+        state = GameState(game_mode = "Partner Eichel", offensive_player = 0, active=0)
+        fixed_history = ["E7_", "E10",  "EK_", "EA_", #player 0 starts, player 3 wins 25 pts
+                         "EO_", "HA_", "H10_", "HK_",  # player 3 opens, plaeyer 3 wins 29 pts
+                         "SA_", "S10", "SK_", "S9_"] # player 3 opens, player 3 wins 25 pts.
+
+        for card in fixed_history:
+            state = state.result(card)
+        self.assertTrue(state.is_decided())
+
       
 class CheckFullGame(unittest.TestCase):
     

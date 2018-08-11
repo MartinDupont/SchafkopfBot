@@ -45,14 +45,18 @@ class Arena:
             self.agents[i].reset()
             self.agents[i].hand = self.deck[i*8:(i+1)*8]
         
+    def who_will_play(self):
+        will_play = []
+        for i in range(4):
+            if self.agents[i].play_or_not(i):
+                will_play += [i]
+        return will_play
+    
     def new_game(self, verbose=True):
         """ Set up a new game, and then play each hand using play_game. """
         self.deal_cards()
         
-        will_play = []
-        for i in range(4):
-            if self.agents[i].play_or_not():
-                will_play += [i]
+        will_play = self.who_will_play()
                 
         if not will_play:
             game_mode = "Ramsch"
@@ -135,13 +139,29 @@ class HumanInterface(Arena):
     # and new_game, because we can't deal out peoples cards
     # play_round must be altered to print out what the bot is doing. 
     
+    def who_will_play(self):
+        will_play = []
+        for i in range(4):
+            choice = self.agents[i].play_or_not(i)
+            if choice:
+                will_play += [i]
+            
+            if i == self.real_player:
+                if choice:
+                    print("Player {} would like to play.".format(i))
+                else:
+                    print("Player {} would not like to play.".format(i))
+        return will_play    
+    
+    
+    
     def deal_cards(self):
         for i in range(4):
             self.agents[i].reset()
             if i == self.real_player:
                 while True:
                     input_string = input("Please type in your hand as a space-separated list of card identifiers: ")
-                    cards = input_string.strip().split(" ")
+                    cards = input_string.strip().upper().split(" ")
                     card_list = []
                     for c in cards:
                         if len(c) == 2:
@@ -150,23 +170,25 @@ class HumanInterface(Arena):
                     try:
                         self.agents[i].hand = card_list
                         break
-                    except ValueError:
-                        print("Those were not valid cards")
+                    except ValueError as e:
+                        print(e.args)
                         continue
                 
-    def play_game(self, state):
+    def play_game(self, state, verbose = True):
         for i in range(8):
             print("===== New Round =====")
             for j in range(4):
+                print(state)
                 active = state.active
                 card = self.agents[active].play_card(state)
                 print("Player {} played a {}".format(active, card))
                 state = state.result(card)
+                self.state = state
             winner, points = state.calculate_round_winner()
             print("Player {} won the round, gaining {} points".format(winner, points))
         
         
-        verbose = True
+        #verbose = True
         if verbose:
             print(state)
         # update points totals.

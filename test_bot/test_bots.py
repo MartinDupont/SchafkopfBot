@@ -40,7 +40,7 @@ class Check_DumbBot(unittest.TestCase):
         self.assertEqual(action, expected)
         
     def test_play_or_not(self):
-        result = self.bot.play_or_not()
+        result = self.bot.play_or_not(0)
         self.assertTrue(result in [True, False])
         
     def test_play_with(self):

@@ -27,8 +27,8 @@ class MonteCarloPlus(DumbBot):
         self.root_node = None
         self.player_id = None
         
-    def play_or_not(self):
-        return False
+#    def play_or_not(self, i):
+#        return False
     
     # -------------------------  
     def tree_policy(self, node):
@@ -92,8 +92,10 @@ class MonteCarloPlus(DumbBot):
     
     def play_card(self, state):
         if len(state.actions(self.hand)) == 1:
-            return state.actions(self.hand)[0]
-        
+            choice = state.actions(self.hand)[0]
+            self.hand.remove(choice)
+            return choice
+
         self.player_id = state.active # is this a good idea?
         self.root_node = Node(state, set(self.hand), self.player_id)
         # if i ever start a simulation where another player has priority, 
