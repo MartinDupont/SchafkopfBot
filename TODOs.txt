@@ -43,14 +43,12 @@
 
 # Make an experiment to measure the average branching factor!!!!!! want to know!
 
-# HumanInterface needs to work properly. Needs to print at every round who the active player is.
-
-# Proxybots need to print which player number they are during every hand. 
-
 # STATE NEEDS TO CHECK IF THE PLAYERS HAVE PLAYED IN A GOOD ORDER.
-
-# BOt needs much more robust checks for card input. Check that given hand is the right length. 
 
 # Put in multiprocessing for battle-royale. 
 
 # put in an is-decided test on the nodes so that I can stop searching....
+
+# Add in a special exception that says when someone has misplayed!
+
+# Make it so that humans can reset the game state to a previous round. Current interface chokes up all the time.

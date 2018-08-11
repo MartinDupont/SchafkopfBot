@@ -340,7 +340,7 @@ class GameState(namedtuple('GameState', ['game_mode', 'offensive_player',
                 
                 
     def __str__(self):
-        outstring =  "============== New Game =============\n"
+        outstring =  "================ Game ===============\n"
         if self.game_mode == "Ramsch":
             outstring += "The players played a Ramsch"
         else:

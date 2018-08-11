@@ -61,20 +61,26 @@ class Arena:
         if not will_play:
             game_mode = "Ramsch"
             offensive_player = None
-            print("We are playing a Ramsch")
         else:
             prefs = []
             for i in will_play:
                 preference = self.agents[i].play_with(i)
-                print('Player {} wants to play a {}'.format(i, preference))
                 prefs += [(i, preference)]
             final_choice =  max(prefs, key = lambda x: con.GAME_PRIORITY[x[1]])
             # in case of a tie, max returns the first maximum encountered, 
             # Thus preserving the correct order of preferences. 
             offensive_player = final_choice[0]
             game_mode = final_choice[1]
-
-            print('Player {} is playing a {}'.format(*final_choice))        
+       
+          
+        if verbose:
+            print("=========== Bidding Phase ===========")
+            if game_mode == "Ramsch":
+                print("Nobody wanted to play.")
+            else:
+                for i, preference in prefs:
+                    print('Player {} wanted to play a {}'.format(i, preference))
+                    
             
         state = GameState(game_mode = game_mode,
                           offensive_player = offensive_player,
@@ -138,7 +144,6 @@ class HumanInterface(Arena):
     # must override player initializaition.
     # and new_game, because we can't deal out peoples cards
     # play_round must be altered to print out what the bot is doing. 
-    
     def who_will_play(self):
         will_play = []
         for i in range(4):
@@ -178,7 +183,6 @@ class HumanInterface(Arena):
         for i in range(8):
             print("===== New Round =====")
             for j in range(4):
-                print(state)
                 active = state.active
                 card = self.agents[active].play_card(state)
                 print("Player {} played a {}".format(active, card))
