@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Jun 19 14:49:51 2018
-
-@author: martin
+This file contains the environments, which are responsible for loading 
+multiple agents, dealing them cards, and conducting the bidding process
+for deciding which game to play. They also run the games.
 """
 
 import constants as con

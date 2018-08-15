@@ -1,8 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Jul 26 15:59:16 2018
+This contains the actual state object that is used by all my agents/environments. 
+Because schafkopf has different rules depending on which type of game is
+to be played, I made a BaseState object, from which all the other states inherit.
+Each game mode has it's own state. And they are consructed from a factory 
+called GameState, which, given the game_mode, will return the appropriate 
+object. 
 
-@author: martin
+The bidding process, which decides which game mode is to be played,
+is handed by the Arena objects in environments.py
+
 """
 
 #from typing import NamedTuple

@@ -13,14 +13,14 @@ import random
 
 
 class MonteCarloPlus(DumbBot):
-    """ Follows a very straightfoward implementation of a Monte Carlo Tree Search:
+    """ Follows a modified implementation of a Monte Carlo Tree Search:
     https://en.wikipedia.org/wiki/Monte_Carlo_tree_search
     
     The algorithm had to be modified slightly, because schafkopf is an incomplete
-    information game. Opponents can play any of the cards that have not been 
+    information game. With this algorithm, opponents can play any of the cards that have not been 
     played so far, and that are not known to be in this players hand, which
     do not lead to impossible situations, such as players having played illegally. 
-    (Except for davonlaufen).
+    (Except for davonlaufen, that's not implemented yet).
     """
     def __init__(self):
         super().__init__()
@@ -162,6 +162,7 @@ class MonteCarloPoints(MonteCarloPlus):
 
 
 class MonteCarloPruning(MonteCarloPlus):
+    """ Mod which cuts the search short after discerning that a game is unwinnable."""
     
     def tree_policy_2(self, node):
         """ If the node has not been fully expanded, we add a child node
