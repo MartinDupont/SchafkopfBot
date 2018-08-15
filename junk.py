@@ -109,10 +109,10 @@ for i in range(16):
 #ncp = {2: 2, 3: 2, 0: 1}
 
 # ============================================================================
-bot = MonteCarloPlus()
-test_state = GameState(game_mode='Schellen Solo', offensive_player=2, active=0, history='0E7_1H7_2EK_3EA_3HA_0H9_1H8_2H103G100GK_1EO_2G8_1SK_2GA_3E9_', player_points=(0, 17, 0, 36))
-test_hand = {'EU_', 'HU_', 'SA_', 'SO_'}
-test_id = 1
+#bot = MonteCarloPlus()
+#test_state = GameState(game_mode='Schellen Solo', offensive_player=2, active=0, history='0E7_1H7_2EK_3EA_3HA_0H9_1H8_2H103G100GK_1EO_2G8_1SK_2GA_3E9_', player_points=(0, 17, 0, 36))
+#test_hand = {'EU_', 'HU_', 'SA_', 'SO_'}
+#test_id = 1
 
 
 # DUH! my bot loops forever when it can't find a solution!!!!1

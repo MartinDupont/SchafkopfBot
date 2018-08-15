@@ -7,12 +7,12 @@ Created on Tue Jun 19 14:49:51 2018
 
 import constants as con
 from random import shuffle
-from bots import DumbBot, ProxyBot, MonteCarlo
+from bots import DumbBot, ProxyBot
 from MCTSPlus import MonteCarloPlus, MonteCarloPoints, MonteCarloPruning
 from pimc import PerfectInformationMonteCarlo
 from gamestate import GameState
 
-agents_dict = {"DUMB":DumbBot, "PROXY": ProxyBot, "MCTS": MonteCarlo,
+agents_dict = {"DUMB":DumbBot, "PROXY": ProxyBot,
                "MCTSPLUS":MonteCarloPlus, "POINTS":MonteCarloPoints, 
                "PRUNING": MonteCarloPruning, "PIMC":PerfectInformationMonteCarlo}
 

@@ -137,12 +137,14 @@ class Node:
         return thing
     
     def print_tree(self, max_depth = 32):
+        """ Prints a tree representation of the node and it's children, 
+        down to a certain depth."""
         def print_util(node, prefix="", depth = 0, max_depth = 32):
             if depth == max_depth:
                 return None
             printstr = ""
             for i in range(depth):
-                printstr += "     "
+                printstr += "    "
             printstr += "|___"
             printstr += str(prefix)
             printstr += " Q: {}, N: {}, ".format(node.Q, node.N)
@@ -162,12 +164,16 @@ class Node:
         return depth_util(self)
     
     def assign_hands(self):
+        """ Generate a set of plausible hands given the play history."""
         result = distribute_cards(self.card_constraints, self.number_constraints, check = False)
         result[self.p_id] = set(self.p_hand)
         return result
     
     
 class SimpleNode(Node):
+    """ A node which, instead of calculating all possible cards a player 
+    may have, simply initializes with a set of player hands that is given to 
+    it. This is used for the Perfect Information Monte Carlo bot."""
     def __init__(self, state, hands):
         self.Q = 0
         self.N = 0
@@ -178,7 +184,12 @@ class SimpleNode(Node):
         
         self.untried_actions = set(state.actions(self.hands[state.active]))
 
-            
+    def get_hand(self):
+        """ This is just here so that the print_tree function has something to print."""
+        return self.hands[self.state.active]
+    p_hand = property(get_hand)  
+    
+        
     def add_child(self, action):
         new_hands = {p: set(hand) for p, hand in self.hands.items()}
         new_state = self.state.result(action)

@@ -7,7 +7,7 @@ Created on Sun Aug 12 13:30:29 2018
 
 import constants as con
 from bots import DumbBot
-from nodes import Node, SimpleNode, assign_hands
+from nodes import SimpleNode, assign_hands
 import time
 import math
 import random

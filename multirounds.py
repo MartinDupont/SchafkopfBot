@@ -1,40 +1,55 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Aug  1 15:48:20 2018
+Runs Multiple matches in parallel.
+
 
 @author: martin
 """
-
+from multiprocessing import Pool
 from environments import Arena
+from os import cpu_count
 
-#botstring = ["MCTS", "MCTSPLUS", "DUMB", "DUMB"]
-botstring = ["DUMB", "DUMB", "DUMB", "DUMB"]
-#botstring = ["MCTSPLUS", "MCTSPLUS", "MCTSPLUS", "MCTSPLUS" ]
 
-arena = Arena(botstring)
+def parallel_matches(bots_list, n_matches):
+    n_cores = cpu_count()
+    temp_list = [int(n_matches/n_cores) for i in range(n_cores)]
+    temp_list[0] += n_matches % n_cores 
+    match_list = [(bots_list, t) for t in temp_list]
 
-for i in range(0):
-    arena.new_game(verbose = True)
+    pool = Pool()
+    results = pool.map(run_matches, match_list) 
+    final_scores = {i:0 for i in range(4)}
+    for r in results:
+        for p, score in r.items():
+            final_scores[p] += score
+    return final_scores
 
-    print("Round end total points:")  
-    print(arena.points_totals)
+def run_matches(tup):
+    bots_list = tup[0]
+    n_matches = tup[1]
+    arena = Arena(bots_list)
     
+    for i in range(n_matches):
+        arena.new_game(verbose = True)
+        
+    return arena.points_totals
+
+
+
+if __name__ == "__main__":        
  
-dumb_v_smart = arena.points_totals
+    n_matches = 12000
+        
+    #botstring = ["MCTSPLUS", "PIMC", "MCTSPLUS", "PIMC" ]
+    #botstring = ["MCTS", "MCTSPLUS", "DUMB", "DUMB"]
+    bots_list = ["DUMB", "DUMB", "DUMB", "DUMB"]
+    #botstring = ["MCTSPLUS", "MCTSPLUS", "MCTSPLUS", "MCTSPLUS" ]
+    result = parallel_matches(bots_list, n_matches)
+    print("=== Final Scores ===")
+    print("n_matches: {}".format(n_matches))
+    print("--------------------")
+    for i in range(4):
+        print(str(i)+": "+bots_list[i]+": {}".format(result[i]))
     
-botstring = ["MCTSPLUS", "PIMC", "PRUNING", "PIMC" ]
 
-arena = Arena(botstring)
-for i in range(200):
-    arena.new_game(verbose = True)
 
-    print("Round end total points:")  
-    print(arena.points_totals)
-    
-smart_v_smarter = arena.points_totals
-
-print("smart v dumb:")
-print(dumb_v_smart)
-print(" ")
-print("smart v smarter")
-print(smart_v_smarter)

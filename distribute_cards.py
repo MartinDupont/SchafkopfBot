@@ -24,6 +24,15 @@ def reorder_constraints(card_constraints):
             
     return out
 
+def unplayed_cards(state, hand):
+    unplayed = set(con.ALL_CARDS)
+    for p, card in state.player_card_tuples(state.history):
+        unplayed.remove(card)
+        
+    for card in hand:
+        unplayed.remove(card)
+    return unplayed
+        
 
 def check_solveable(card_cons, number_cons):
     """ Check that the supplied problem is solveable.

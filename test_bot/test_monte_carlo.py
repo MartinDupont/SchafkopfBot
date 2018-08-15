@@ -23,7 +23,22 @@ class TestNodes(unittest.TestCase):
         result = self.node.children["EK_"].p_hand
         expected = set(['EU_', 'G10', 'SA_', 'HK_', 'H7_', 'S7_', 'H10'])
         self.assertEqual(result, expected)
+
+
+class Check_MCTS(unittest.TestCase):
+    """ Really gotta expand this"""
+    def setUp(self):
+        self.bot = MonteCarloPlus()
+        self.bot.hand = ['G7_', 'HO_', 'EO_', 'GU_', 'HU_', 'SA_', 'GK_', 'EK_']
+        game_mode = "Herz Solo"
+        self.state = GameState(game_mode = game_mode, offensive_player = 0, active=0)
         
+    def test_play(self):
+        """ Check that he can play a single card without error."""
+        state = self.state.result("E10")
+        action = self.bot.play_card(state)
+        expected = "EK_"
+        self.assertEqual(action, expected)        
 
 class TestMonteCarlo(unittest.TestCase):
     def setUp(self):
