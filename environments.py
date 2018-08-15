@@ -8,11 +8,13 @@ Created on Tue Jun 19 14:49:51 2018
 import constants as con
 from random import shuffle
 from bots import DumbBot, ProxyBot, MonteCarlo
-from MCTSPlus import MonteCarloPlus
+from MCTSPlus import MonteCarloPlus, MonteCarloPoints, MonteCarloPruning
+from pimc import PerfectInformationMonteCarlo
 from gamestate import GameState
 
 agents_dict = {"DUMB":DumbBot, "PROXY": ProxyBot, "MCTS": MonteCarlo,
-               "MCTSPLUS":MonteCarloPlus}
+               "MCTSPLUS":MonteCarloPlus, "POINTS":MonteCarloPoints, 
+               "PRUNING": MonteCarloPruning, "PIMC":PerfectInformationMonteCarlo}
 
 
 class Arena:
@@ -119,9 +121,11 @@ class Arena:
         elif n_winners == 2:
             win_points = 1
             lose_points = -1
-        else:
+        elif n_winners == 3:
             win_points = 1
             lose_points = -3
+        else:
+            raise ValueError("Sum of utilities was not 1,2, or 3, sum = {}".format(utils))
         
         results = tuple(win_points if i == 1 else lose_points for i in utils)
         return results

@@ -106,6 +106,115 @@ class MonteCarloPlus(DumbBot):
         depth = 0
         while t < 2:
             v, utils = self.tree_policy(self.root_node)
+            depth = max((depth, v.depth()))
+            self.back_up(v, utils)
+            node, action = self.best_child(self.root_node, 0)
+            choice = action
+            t = time.time() - start
+            i+=1
+#        print("====================")
+#        print("Depth: "+str(depth))
+#        print("N cycles: "+str(i))
+        self.hand.remove(choice)
+        return choice
+    
+    
+    
+    
+class MonteCarloPoints(MonteCarloPlus):
+    """ Same as MonteCarloPlus, but uses the full points values for utility instead
+    of {0,1}. Utilities are divided by 120 so that the utilities lie in [0,1],
+    as is assumed by the UCTS monte-carlo algorithm. """
+    def tree_policy(self, node):
+        """ If the node has not been fully expanded, we add a child node
+        and run the default policy on it, delivering a node and utilities. 
+        Sometimes, the node may actually not be expandable, and we raise an error"""
+        while not node.state.terminal_test():
+            if not node.is_fully_expanded():
+                try:
+                    return self.expand_node(node)
+                except AssertionError:
+                    continue
+            else:
+                node, _ = self.best_child(node)
+        
+        utils = node.state.utilities(bools=False)
+        utils = tuple(i*1.0/120 for i in utils)
+        return node, utils  
+    
+    def default_policy(self, state, possible_hands):
+        """ Given some consistent assignment of hands, each player then 
+        plays randomly until the end of the game.
+        
+        Returns
+        -------
+        utils: tuple of length 4. 
+        """
+        while not state.terminal_test():
+            active = state.active
+            active_hand = possible_hands[active]
+            action = random.choice(state.actions(active_hand))
+            active_hand.remove(action)
+            state = state.result(action)
+        utils = state.utilities(bools=False)
+        utils = tuple(i*1.0/120 for i in utils)
+        return utils
+
+
+class MonteCarloPruning(MonteCarloPlus):
+    
+    def tree_policy_2(self, node):
+        """ If the node has not been fully expanded, we add a child node
+        and run the default policy on it, delivering a node and utilities. 
+        Sometimes, the node may actually not be expandable, and we raise an error"""
+        while not node.state.is_decided():
+            if not node.is_fully_expanded():
+                try:
+                    return self.expand_node(node)
+                except AssertionError:
+                    continue
+            else:
+                node, _ = self.best_child(node)
+        return node, node.state.utilities(intermediate=True) 
+    
+    def default_policy(self, state, possible_hands):
+        """ Given some consistent assignment of hands, each player then 
+        plays randomly until the end of the game.
+        
+        Returns
+        -------
+        utils: tuple of length 4. 
+        """
+        while not state.terminal_test():
+            active = state.active
+            active_hand = possible_hands[active]
+            action = random.choice(state.actions(active_hand))
+            active_hand.remove(action)
+            state = state.result(action)
+        return state.utilities()    
+
+    def play_card(self, state):
+        if len(state.actions(self.hand)) == 1:
+            choice = state.actions(self.hand)[0]
+            self.hand.remove(choice)
+            return choice
+
+        if state.is_decided():
+            tree_policy = self.tree_policy
+        else:
+            tree_policy = self.tree_policy_2
+        # After the game has been won, he needs the ability to keep on playing. 
+        
+        self.player_id = state.active # is this a good idea?
+        self.root_node = Node(state, set(self.hand), self.player_id)
+        # if i ever start a simulation where another player has priority, 
+        # my algorithm will assume that THAT player has MY hand. 
+        i=0
+        start = time.time()
+        t = time.time() - start
+        depth = 0
+        while t < 2:
+            v, utils = tree_policy(self.root_node)
 #            depth = max((depth, v.depth()))
             self.back_up(v, utils)
             node, action = self.best_child(self.root_node, 0)
@@ -117,3 +226,5 @@ class MonteCarloPlus(DumbBot):
 #        print("N cycles: "+str(i))
         self.hand.remove(choice)
         return choice
+
+    

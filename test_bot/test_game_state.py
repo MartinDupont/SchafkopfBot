@@ -45,6 +45,8 @@ class CheckDavonlaufen(unittest.TestCase):
         self.assertEqual(allowed, expected)
         
 
+        
+
 class CheckWenz(unittest.TestCase):
     def setUp(self):
         self.gamemode = "Wenz"
@@ -77,6 +79,24 @@ class CheckWenz(unittest.TestCase):
         winner, points = state.calculate_round_winner(state.history)
         self.assertEqual(0, winner)
         self.assertEqual(9, points)
+        
+    def test_utilities(self):
+        """ Doing a Wenz in which the first guy doesn't lose a single hand."""
+        fixed_history = ["EU_", "GU_", "HU_", "E7_",
+                         "SU_", "S7_", "G7_", "H7_",
+                         "EA_", "E10", "EK_", "E9_",
+                         "SA_", "S10", "SK_", "S9_",
+                         "HA_", "H7_", "H8_", "H9_"]
+        total_points = 6 + 2 + 25 + 25 + 11
+        
+        state = self.state
+        for card in fixed_history:
+            state = state.result(card)
+            
+        self.assertTrue(state.is_decided())
+        self.assertEqual((1, 0, 0, 0), state.utilities(intermediate=True))
+        self.assertEqual((total_points, 0, 0, 0),
+                         state.utilities(bools=False, intermediate=True))
         
 class CheckRoundPoints(unittest.TestCase):
     def setUp(self):
@@ -128,6 +148,32 @@ class CheckRoundPoints(unittest.TestCase):
         expected = (1, 0, 0, 0)
         self.assertEqual(utility, expected)
         
+        
+    def test_winner_utils(self):
+        """" Fixed history for a hame in which palyers 1 and 2 win, but player
+        3 called the ace, and player 0 had it."""
+        state = GameState(game_mode = "Partner Gras", offensive_player = 3, active=3)
+        
+        fixed_history=  ["S8_", "SA_", "S10", "S9_",    # Player 0 wins 21 points
+                         "GU_", "HO_", "HU_", "H10",    # player 1 wins 17 points
+                         "EK_", "E8_", "EA_", "E10",    # player 3 wins 25 points
+                         "SO_", "H7_", "E7_", "HK_",    # player 3 wins 7 points
+                         "EU_", "H8_", "G8_", "EO_",    # player 2 wins 5 points
+                         "SU_", "H9_", "G9_", "G7_",    # player 2 wins 2 points
+                         "GO_", "E9_", "SK_", "G10",    # player 2 wins 17 points
+                         "HA_", "S7_", "GA_", "GK_"]    # player 2 wins 26 points
+        
+        for action in fixed_history:
+            state = state.result(action)
+        
+        utils = state.utilities()
+        expected = (0, 1, 1, 0)
+        self.assertEqual(utils, expected)
+        
+        points_tally = state.tally_points()
+        expected = (53, 67, 67, 53)
+        self.assertEqual(points_tally, expected)
+        
 class CheckRamsch(unittest.TestCase):
     def setUp(self):
         self.state = GameState(game_mode = "Ramsch", offensive_player = None, active=0)
@@ -143,12 +189,37 @@ class CheckRamsch(unittest.TestCase):
                          "H8_", "E8_", "E7_", "G8_",
                          "H7_", "G7_", "S8_", "S7_"]
         state = self.state
-        for card in fixed_history:
+        for i, card in enumerate(fixed_history):
             state = state.result(card)
+                
         utility = state.utilities()
         expected = (0, 1, 1, 1)
         self.assertEqual(utility, expected)
-
+        
+    def test_partial_utilities(self):
+        """ Test that the utilities are calculated correctly before and
+        after the game is decided."""
+        fixed_history = ["EO_", "GO_", "HO_", "SO_",
+                         "EU_", "GU_", "HU_", "SU_",
+                         "HA_", "H10", "HK_", "H9_",
+                         "EA_", "E10", "EK_", "E9_"]
+        state = self.state
+        for i, card in enumerate(fixed_history):
+            state = state.result(card)
+            if i == 12:
+                decided = state.is_decided()
+                self.assertTrue(not decided)
+                bool_utils = state.utilities(intermediate= True)
+                self.assertEqual((0,0,0,0), bool_utils)
+                point_utils = state.utilities(bools=False, intermediate=True)
+                self.assertEqual((75, 120, 120, 120), point_utils)
+                
+        decided = state.is_decided()
+        self.assertTrue(decided)
+        bool_utils = state.utilities(intermediate = True)
+        self.assertEqual((0,1,1,1), bool_utils)
+                
+                
 
 class CheckIsDecided(unittest.TestCase):
     def check_solo(self):
@@ -156,10 +227,15 @@ class CheckIsDecided(unittest.TestCase):
         state = GameState(game_mode = "Herz Solo", offensive_player = 0, active=0)
         fixed_history = ["EO_", "GO_", "HO_", "SO_",
                          "EU_", "GU_", "HU_", "SU_",
-                         "HA_", "H10", "HK_", "H9_",
-                         "EA_", "E10", "EK_", "E9_"]
+                         "HA_", "H10", "HK_", "H9_"]
         
         for card in fixed_history:
+            state = state.result(card)
+        
+        self.assertTrue(not state.is_decided())
+        
+        extra_history = ["EA_", "E10", "EK_", "E9_"]
+        for card in extra_history:
             state = state.result(card)
         
         self.assertTrue(state.is_decided())
@@ -169,24 +245,53 @@ class CheckIsDecided(unittest.TestCase):
         state = GameState(game_mode = "Ramsch", offensive_player = 0, active=0)
         fixed_history = ["EO_", "GO_", "HO_", "SO_",
                          "EU_", "GU_", "HU_", "SU_",
-                         "HA_", "H10", "HK_", "H9_",
-                         "EA_", "E10", "EK_", "E9_"]
+                         "HA_", "H10", "HK_", "H9_"]
         
         for card in fixed_history:
             state = state.result(card)
         
+        self.assertTrue(not state.is_decided())
+        extra_history = ["EA_", "E10", "EK_", "E9_"]
+        for card in extra_history:
+            state = state.result(card)
+            
         self.assertTrue(state.is_decided())
         
     def check_partner(self):
         state = GameState(game_mode = "Partner Eichel", offensive_player = 0, active=0)
         fixed_history = ["E7_", "E10",  "EK_", "EA_", #player 0 starts, player 3 wins 25 pts
-                         "EO_", "HA_", "H10_", "HK_",  # player 3 opens, plaeyer 3 wins 29 pts
+                         "EO_", "HA_", "H10_", "HK_",  # player 3 opens, player 3 wins 28 pts
                          "SA_", "S10", "SK_", "S9_"] # player 3 opens, player 3 wins 25 pts.
 
         for card in fixed_history:
             state = state.result(card)
         self.assertTrue(state.is_decided())
+        
+        utilities = state.utilities(bools=False, intermediate=True)
+        expected = (78, 0, 0, 78)
+        self.assertEqual(expected, utilities)
+        
+    def check_unknown_partner(self):
+        state = GameState(game_mode = "Partner Eichel", offensive_player = 0, active=0)
+        fixed_history = ["EO_", "HA_", "H10_", "HK_",
+                         "SA_", "S10", "SK_", "S9_",
+                         "E7_", "E8_",  "E9_"]
 
+        for card in fixed_history:
+            state = state.result(card)
+            
+        self.assertTrue(not state.is_decided())
+        utilities = state.utilities(bools=False, intermediate=True)
+        expected = (53, 0, 0, 0)
+        self.assertEqual(utilities, expected)
+        
+        state = state.result("EA_")
+        
+        self.assertTrue(state.is_decided())
+        utilities = state.utilities(bools=False, intermediate=True)
+        expected = (64, 0, 0, 64)
+        self.assertEqual(utilities, expected)
+        
       
 class CheckFullGame(unittest.TestCase):
     

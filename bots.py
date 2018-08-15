@@ -222,8 +222,8 @@ class MonteCarlo(DumbBot):
         self.root_node = None
         self.player_id = None
         
-#    def play_or_not(self, i):
-#        return False
+    def play_or_not(self, i):
+        return False
     
     # -------------------------  
     def tree_policy(self, node):

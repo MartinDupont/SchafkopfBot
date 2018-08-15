@@ -136,8 +136,10 @@ class Node:
             thing += "Action:{}, location: {}\n".format(key, id(value))
         return thing
     
-    def print_tree(self):
-        def print_util(node, prefix="", depth = 0):
+    def print_tree(self, max_depth = 32):
+        def print_util(node, prefix="", depth = 0, max_depth = 32):
+            if depth == max_depth:
+                return None
             printstr = ""
             for i in range(depth):
                 printstr += "     "
@@ -147,8 +149,8 @@ class Node:
             printstr += "Hand: "+str(node.p_hand)+"\n"
             print(printstr)
             for key, value in node.children.items():
-                print_util(value, prefix = key, depth = depth+1)
-        print_util(self)
+                print_util(value, prefix = key, depth = depth+1, max_depth = max_depth)
+        print_util(self, max_depth= max_depth)
         
     def depth(self):
         def depth_util(node, count = 0):
@@ -163,3 +165,31 @@ class Node:
         result = distribute_cards(self.card_constraints, self.number_constraints, check = False)
         result[self.p_id] = set(self.p_hand)
         return result
+    
+    
+class SimpleNode(Node):
+    def __init__(self, state, hands):
+        self.Q = 0
+        self.N = 0
+        self.children = {}
+        self.parent = None
+        self.state = state
+        self.hands = {p: set(hand) for p, hand in hands.items()}
+        
+        self.untried_actions = set(state.actions(self.hands[state.active]))
+
+            
+    def add_child(self, action):
+        new_hands = {p: set(hand) for p, hand in self.hands.items()}
+        new_state = self.state.result(action)
+        new_hands[self.state.active].remove(action)
+        new_node = SimpleNode(new_state, new_hands)
+        self.children[action] = new_node
+        new_node.parent = self
+        return new_node
+
+
+
+
+
+    

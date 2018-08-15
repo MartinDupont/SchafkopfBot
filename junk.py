@@ -10,8 +10,9 @@ import constants as con
 import copy
 import random
 from bots import DumbBot
-from MCTSPlus import MonteCarloPlus
-from nodes import Node, assign_hands, how_many, inverse_legal_moves
+from MCTSPlus import MonteCarloPlus, MonteCarloPruning
+from pimc import PerfectInformationMonteCarlo
+from nodes import Node, assign_hands, inverse_legal_moves
 from distribute_cards import distribute_cards
 
 game_mode = "Schellen Solo"
@@ -26,14 +27,14 @@ for i in range(4):
     
 state = GameState(game_mode = game_mode, offensive_player = 2, active=0)
 
-bot_list = [DumbBot(), MonteCarloPlus(), DumbBot(), DumbBot()]
+bot_list = [DumbBot(), PerfectInformationMonteCarlo(), DumbBot(), DumbBot()]
 
 agents = {i: bot for i, bot in enumerate(bot_list)}
 
 for i in range(4):
     agents[i].hand = hands[i]
 
-for i in range(32):
+for i in range(16):
     active = state.active
     card = agents[active].play_card(state)
     state = state.result(card)

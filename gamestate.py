@@ -9,7 +9,25 @@ Created on Thu Jul 26 15:59:16 2018
 from collections import namedtuple
 import constants as con
 
-class GameState(namedtuple('GameState', ['game_mode', 'offensive_player',
+class GameState():
+    """ This is just a factory which returns the different gamestates for 
+    a given gamemode. It's a bit hacky, in that it never returns a GameState
+    object. I'm not sure if it's a great approach."""
+    def __new__(cls, game_mode="", offensive_player=None, active=None,
+                history="", player_points = (0, 0, 0, 0)):
+        
+        if not game_mode in con.GAME_MODES:
+            raise ValueError("{} is not a valid game mode".format(game_mode))
+            
+        if game_mode == "Ramsch":
+            return RamschState(game_mode, offensive_player, active, history, player_points) 
+        elif game_mode in ["Partner Gras", "Partner Eichel", "Partner Schellen"]:
+            return PartnerState(game_mode, offensive_player, active, history, player_points) 
+        elif game_mode in ["Herz Solo", "Eichel Solo", "Gras Solo", "Schellen Solo", "Wenz"]:
+            return SoloState(game_mode, offensive_player, active, history, player_points) 
+
+
+class BaseState(namedtuple('GameState', ['game_mode', 'offensive_player',
                                          'active', "history", "player_points"])
                 ):
     """
@@ -33,7 +51,7 @@ class GameState(namedtuple('GameState', ['game_mode', 'offensive_player',
         if not (len(history) %4 == 0):
             raise ValueError("The inputted history is not correct.")
 
-        return super(GameState, cls).__new__(cls, game_mode, offensive_player, active, history, player_points)
+        return super(BaseState, cls).__new__(cls, game_mode, offensive_player, active, history, player_points)
 
     # ------------------------ Helper Functions ----------------------------- #
     def get_current_round(self):
@@ -123,29 +141,6 @@ class GameState(namedtuple('GameState', ['game_mode', 'offensive_player',
         # If I can't match the suit, play whatever. Also works if I'm coming out, if current_suit is None.
         if not(matching_cards):
             matching_cards = hand
-        
-        # check if we're playing a partner game, and I have the called ace. 
-        # If we're not doing partner play, called_ace is None
-        if called_ace in hand: 
-            called_colour = suit_dictionary[called_ace]
-            if current_round:
-                # Someone has played a card before me, I'm not coming out.
-                if current_suit == called_colour:
-                    # play the ace if I have it
-                    return [called_ace]
-                else: 
-                    # play any valid card that isn't the ace
-                    return [card  for card in matching_cards if card != called_ace]
-                
-            else: 
-                # If i am allowed to come out.
-                if len([card for card in hand if suit_dictionary[card] == called_colour]) >= 4:
-                    # can "run away" and not open with the ace. 
-                    return hand
-                else:
-                    # Can open with the called ace, but not any other card of the called colour
-                    return [card  for card in hand if 
-                            (card == called_ace) or (suit_dictionary[card] != called_colour)]  
 
         return matching_cards
 
@@ -246,9 +241,55 @@ class GameState(namedtuple('GameState', ['game_mode', 'offensive_player',
         else:
             raise ValueError("Someone tried to play past the end of the game")
           
+    def tally_points(self):
+        """ Counts points accumulated by each player so far, including points
+        scored by teammates, if they exist.
+        Returns
+        -------
+        tuple
+            A tuple of the points each player has accrued."""
+        raise NotImplementedError
+        
+    def is_decided(self):
+        """ In schafkopf, a game may be decided before the game is over. Note,
+        that this does not immediately end the game, as it is the responsibility
+        of the players to keep count of the points. In addition, a bigger 
+        prize is awarded for winning by over 90 points, so players have an 
+        incentive to keep playing after they know the game is over.
+        
+        Returns
+        -------
+            bool  """
+        utils = self.utilities(bools=True, intermediate=True)
+        if not utils == (0, 0, 0, 0):
+            return True
+        return False
     
-    def utilities(self):
-        """ 
+    def utilities(self, bools=True, intermediate=False):
+        """ Calculates the expected utility for each player. There are various
+        ways of potentially calculating utility.
+        Parameters
+        ----------
+        bools : boolean
+            If True, returns a tuple of 1's and zeros, corresponding to whether
+            a player won or lost the game, ignoring how much they won the game by.
+            If False, it will return a utility proportional to how many points
+            the player has won, including points potentially won by his teammates.
+            Values of the tuple will be in [0, 120]
+            
+        intermediate: boolean
+            controls whether to evaluate utility at intermediate stages of the
+            game. For example, sometimes the outcome is known before the game
+            is over and so a state has a utility associated with it. 
+            If True and bools is true, it will deliver a tuple of 1's and 0's 
+            if the outcome is already known, and a tuple of 0's if the outcome 
+            is still unknown. 
+            
+            If True and bools is False, then it will deliver the result of 
+            the tally-points function, unless we are in a Ramsch, then it will
+            deliver 120 minus those points, to account for the fact that more
+            points in a ramsch are worse. 
+        
         Returns
         -------
         tuple
@@ -257,87 +298,8 @@ class GameState(namedtuple('GameState', ['game_mode', 'offensive_player',
             a value of -1 if the player has lost, and a value of 0
             otherwise.
         """
+        raise NotImplementedError
 
-        if not self.terminal_test():
-            return (0, 0, 0, 0)
-        
-        if self.game_mode == "Ramsch":
-            max_score = max(self.player_points)
-            return tuple(0 if p == max_score else 1 for p in self.player_points)
-            # Also covers the case of a tie.
-        elif self.partner_game():
-            offensive_team = (self.offensive_player, self.played_the_ace())
-        else:
-            offensive_team = (self.offensive_player,)
-
-        off_points = sum(self.player_points[i] for i in offensive_team)
-        def_points = 120 - off_points        
-        
-        if off_points >= 61:
-            return tuple(1 if i in offensive_team else 0 for i in range(4))
-        else:
-            return tuple(0 if i in offensive_team else 1 for i in range(4))
-        
-    def utilities_points(self):
-        """ 
-        Testing if a different utility function improves my MCTS bots.
-        """
-        # if i want this to return partial utilities, then i need to change the return at the bottom.
-        # and a lot more stuff. 
-        if not self.terminal_test():
-            return (0, 0, 0, 0)
-        
-        if self.game_mode == "Ramsch":
-            return tuple(p for p in self.player_points)
-
-        elif self.partner_game():
-            offensive_team = (self.offensive_player, self.played_the_ace())
-        else:
-            offensive_team = (self.offensive_player,)
-
-        off_points = sum(self.player_points[i] for i in offensive_team)
-        def_points = 120 - off_points        
-        
-        return tuple(off_points if i in offensive_team else def_points for i in range(4))
-
-     
-    def is_decided(self):
-        """ In schafkopf, a game may be decided before the game is over. Note,
-        that this does not immediately end the game, as it is the responsibility
-        of the players to keep count of the points. In addition, a bigger 
-        prize is awarded for winning by over 90 points."""
-        
-        if self.game_mode =="Ramsch":
-            remaining = 120 - sum(self.player_points)
-            rank = sorted(self.player_points, reverse = True)
-            first, second = rank[0], rank[1]
-            
-            if first - second > remaining:
-                return True
-            return False
-        
-        if self.partner_game():
-            if self.played_the_ace():
-                offensive_team = (self.offensive_player, self.played_the_ace())
-            else:
-                if any(self.player_points > 60): 
-                    return True
-                return False
-        else:
-            offensive_team = (self.offensive_player,)
-            
-        defensive_team = (i for i in range(4) if not i in offensive_team)
-                
-        cond_1 = sum(self.player_points[i] for i in offensive_team) >= 61
-        cond_2 = sum(self.player_points[i] for i in defensive_team) >= 60
-        if cond_1 or cond_2:
-            return True
-                
-        return False
-                
-                
-                
-                
                 
     def __str__(self):
         outstring =  "================ Game ===============\n"
@@ -369,4 +331,199 @@ class GameState(namedtuple('GameState', ['game_mode', 'offensive_player',
             outstring += "\n====================================="
             
         return outstring
+
+# =========================================================================== #
+#                          Specific Game Modes
+# =========================================================================== #
+
+
+class RamschState(BaseState):
+    def __new__(cls, game_mode="", offensive_player=None, active=None,
+                history="", player_points = (0, 0, 0, 0)):
+        if not game_mode == "Ramsch":
+            raise ValueError("{} is not 'Ramsch'. Something went wrong with initialization".format(game_mode))
+        if not (len(history) %4 == 0):
+            raise ValueError("The inputted history is not correct.")
+
+        return super(RamschState, cls).__new__(cls, game_mode, offensive_player, active, history, player_points) 
+    
+    
+    def tally_points(self):
+        return self.player_points
+    
+    def utilities(self, bools=True, intermediate=False):
+        if (intermediate is False) and not(self.terminal_test()):
+            return (0, 0, 0, 0)
+        
+        points_tally = self.player_points
+        if not bools:
+            return tuple(120 - p for p in points_tally)
+        # if we are returning a non-boolean utility, then the calculation
+        # doesn't change if we are in an intermediate state or not. 
+        # Must return 120 minus points, because in a ramsch, having more points
+        # is BAD. Other agents will often want to normalize the points utility
+        # by dividing by 120, to keep the utility in [0,1]. Returning 120-p 
+        # ensures that for ALL gamestates, we can normalize by dividing by 120.
+        
+        remaining = 120 - sum(self.player_points)
+        rank = sorted(self.player_points, reverse=True)
+        first, second = rank[0], rank[1]
+            
+        if (remaining == 0) or (first - second > remaining):
+            return tuple(0 if points_tally[i] == first else 1 for i in range(4))
+            # Either the game is over, or one player has so many points that 
+            # nobody can catch up. 
+        return (0, 0, 0, 0)
+        # outcome is still unknown. 
+
+            
+    
+
+class PartnerState(BaseState):
+    def __new__(cls, game_mode="", offensive_player=None, active=None,
+                history="", player_points = (0, 0, 0, 0)):
+        if not game_mode in ["Partner Eichel", "Partner Gras", "Partner Schellen"]:
+            raise ValueError("{} is not a partner game. Something went wrong with initialization".format(game_mode))
+        if not (len(history) %4 == 0):
+            raise ValueError("The inputted history is not correct.")
+
+        return super(PartnerState, cls).__new__(cls, game_mode, offensive_player, active, history, player_points) 
+
+    def tally_points(self):
+        partner = self.played_the_ace()
+        if not partner is None:
+            offensive_team = (self.offensive_player, partner)
+            defensive_team = tuple(i for i in range(4) if not i in offensive_team)
+            off_points = sum(self.player_points[i] for i in offensive_team)
+            def_points = sum(self.player_points[i] for i in defensive_team)
+            
+            points_tally = tuple(off_points if i in offensive_team else def_points for i in range(4))
+        else:
+            points_tally = self.player_points
+            # Nobody knows their partner yet (for sure), so we can't combine points
+        
+        return points_tally 
+            # Nobody knows their partner yet (for sure), so we can't combine points
+
+    def utilities(self, bools=True, intermediate=False):
+        if (intermediate is False) and not(self.terminal_test()):
+            return (0, 0, 0, 0)
+        
+        points_tally = self.tally_points()
+        if not bools:
+            return points_tally
+        
+        partner = self.played_the_ace()
+        offensive = self.offensive_player
+        if partner is None:
+            # We don't know winners, because we don't know who's playing with who.
+            return (0, 0, 0, 0)
+        else:
+            offensive_team = (offensive, partner)
+            defensive_team = tuple(i for i in range(4) if not i in offensive_team)
+            
+            off_points = points_tally[offensive]
+            def_points = points_tally[defensive_team[0]]
+            if off_points >= 61:
+                return tuple(1 if i in offensive_team else 0 for i in range(4))
+            if def_points >= 60:
+                return tuple(1 if i in defensive_team else 0 for i in range(4))
+            return (0, 0, 0, 0)
+        
+        
+
+    def actions(self, hand):
+        """ Overrides actions from base game to acommodate playing the called ace.  
+        
+        If one is playing a partner game, and he has the called ace. 
+        Then he must play the called ace, if it's suit was played. There is 
+        also the special case of "running away" or "davonlaufen"; if a player
+        who has the called ace has four or more cards of that same colour in 
+        his hand, then he may open with one of those cards instead of the ace."""
+        hand = list(hand)
+        
+        if len(hand) == 1:
+            return hand   
+        
+        current_round = self.get_current_round()
+        _, _, called_ace, suit_dictionary = con.constants_factory(self.game_mode)
+        
+        if current_round:
+            current_suit = suit_dictionary[current_round[1:4]] 
+        else:
+            current_suit = None
+        
+        matching_cards = [card for card in hand if suit_dictionary[card] == current_suit]
+        # If I can't match the suit, play whatever. Also works if I'm coming out, if current_suit is None.
+        if not(matching_cards):
+            matching_cards = hand
+        
+        # check if we're playing a partner game, and I have the called ace. 
+        # If we're not doing partner play, called_ace is None
+        if called_ace in hand: 
+            called_colour = suit_dictionary[called_ace]
+            if current_round:
+                # Someone has played a card before me, I'm not coming out.
+                if current_suit == called_colour:
+                    # play the ace if I have it
+                    return [called_ace]
+                else: 
+                    # play any valid card that isn't the ace
+                    return [card  for card in matching_cards if card != called_ace]
+                
+            else: 
+                # If i am allowed to come out.
+                if len([card for card in hand if suit_dictionary[card] == called_colour]) >= 4:
+                    # can "run away" and not open with the ace. 
+                    return hand
+                else:
+                    # Can open with the called ace, but not any other card of the called colour
+                    return [card  for card in hand if 
+                            (card == called_ace) or (suit_dictionary[card] != called_colour)]  
+
+        return matching_cards
+
+
+
+
+class SoloState(BaseState):
+    def __new__(cls, game_mode="", offensive_player=None, active=None,
+                history="", player_points = (0, 0, 0, 0)):
+        if not game_mode in ["Herz Solo", "Eichel Solo", "Schellen Solo", "Gras Solo", "Wenz"]:
+            raise ValueError("{} is not a solo game. Something went wrong with initialization".format(game_mode))
+        if not (len(history) %4 == 0):
+            raise ValueError("The inputted history is not correct.")
+
+        return super(SoloState, cls).__new__(cls, game_mode, offensive_player, active, history, player_points)    
+
+
+    def tally_points(self):
+        
+        offensive = self.offensive_player
+        defensive = tuple(i for i in range(4) if not i == offensive)
+        
+        off_points = self.player_points[offensive]
+        def_points = sum(self.player_points[i] for i in defensive)
+        
+        points_tally = tuple(off_points if i == offensive else def_points for i in range(4))
+        
+        return points_tally
+    
+    def utilities(self, bools=True, intermediate=False):
+        if (intermediate is False) and not(self.terminal_test()):
+            return (0, 0, 0, 0)
+        
+        points_tally = self.tally_points()
+        if not bools:
+            return points_tally
+        
+        offensive = self.offensive_player
+        defensive = tuple(i for i in range(4) if not i == offensive)[0] 
+        # only need one defensive player, because the points were aggregated earlier. 
+        if points_tally[offensive] >= 61:
+            return tuple(1 if i == offensive else 0 for i in range(4))
+        elif points_tally[defensive] >= 60:
+            return tuple(1 if i != offensive else 0 for i in range(4))
+        else:
+            return (0, 0, 0, 0)
 
