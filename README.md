@@ -7,7 +7,7 @@ I decided to tackle this project because I play the game regularly, but also bec
 
 ## Rules of Schafkopf
 
-Schafkopf is a deterministic, imperfect-infromation, multiplayer game for exacly four players. 
+Schafkopf is a deterministic, imperfect-infromation, multiplayer game for exacly four players. It is a trick-taking card game, and is closely related to the game Skat.
 
 Schafkopf is hard to learn, and there are many resources online detailing the rules of the game, although few are in English. The following sites should be useful:
 
@@ -38,6 +38,8 @@ To run a game, one must make an instance of an Arena class found in environments
 The base Arena class is designed to play four computer agents against each other. Once the arena class has been set up, rounds are played by calling new_game(), which will automatically instantiate and play a new game. A running points tally is kept between games, and the computer agents remain instantiated between games too. 
 
 HumanInterface inherits from Arena, and is designed for playing a computer agent against four human players sitting at a card table. Running new_game() will start an interactive prompt, where the user tells the computer which cards the human opponents have played, and the agent then plays its cards at the appropriate time. 
+
+Alternatively, one can run the parallel_matches function in multirounds.py, which runs large amounts of games across multiple CPU's.  
 
 
 ## Misc.

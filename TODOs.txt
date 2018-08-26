@@ -1,7 +1,4 @@
 
-* Probably need an Arena base class too. 
-
-* Separate contsants.py and move functions to utils.py
 
 * Implement suit_mapping as a named tuple?!?!?!
 
@@ -12,43 +9,32 @@
 # Otherplayersmayhave should be stored IN the nodes, and updated iteratively, 
 	rather than having to run through the whole game history every time!!!
 
-
-#TODO: replace utility with straight number of points. For now, only calculate at games end when partners are known. 
-#Could however make a heuristic search robot which uses current points as heuristic. Must solve the CSP first. 
-
-# Put hardcoded rules for the gamestate in each new instance of a gamestate with the new function!!! 
-	That is to say, we need a factories which deliver different gamestates depending on the mode. (Do we? differences between states are minor).
-
-
-# Replace +-1 utilities with actual point values. 
-
-# add in a winning_points function. 
-
 # add in a winners function into the state. Currently I can't debug the winners except for if i print them 
 
 # add a check at the end of the game to see if everyone played by the rules. 
-
-# get consistent naming p_id vs p_num etc. 
 
 # Need more robust checks on gamesate
 
 # Idea, add winner_points variable to the utility function so that running tallies remain zero sum. 
 
-# Change node creation so that the card_constraints are updated iteratively!. This should save time. Currently averaging 900 node expansions on first move. 
+# Change node creation so that the card_constraints are updated iteratively!. This should save time. 
  
 
 # winning_player in gamestate can be replaced by a dictionary which maps card to priority. Changes O(n) runtime to O(1).
 
 # Distribute_cards takes up 25% of TOTAL RUNTIME. NEED TO MAKE THIS FASTER.
 
-# Make an experiment to measure the average branching factor!!!!!! want to know!
-
 # STATE NEEDS TO CHECK IF THE PLAYERS HAVE PLAYED IN A GOOD ORDER.
 
 # Put in multiprocessing for battle-royale. 
 
-# put in an is-decided test on the nodes so that I can stop searching....
 
 # Add in a special exception that says when someone has misplayed!
 
 # Make it so that humans can reset the game state to a previous round. Current interface chokes up all the time.
+
+# Need a heuristic agent. 
+
+# I CAN make a total ordering on cards, have all 7's =1 , 8's =2 etc... up to H7 ... EO. ! can now define a play_highest_card.
+
+# I can make a good heuristic by estimating the number of hands I can expecct to win! Should be very easy. 

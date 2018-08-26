@@ -5,14 +5,14 @@ Created on Thu Aug  2 18:46:15 2018
 @author: martin
 """
 import constants as con
-from bots import DumbBot
+from bots import HeuristicBot
 from nodes import Node
 import time
 import math
 import random
 
 
-class MonteCarloPlus(DumbBot):
+class MonteCarloPlus(HeuristicBot):
     """ Follows a modified implementation of a Monte Carlo Tree Search:
     https://en.wikipedia.org/wiki/Monte_Carlo_tree_search
     

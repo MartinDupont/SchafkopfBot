@@ -1,0 +1,7 @@
+=== Final Scores ===
+n_matches: 3500
+--------------------
+0: MCTSPLUS: -494
+1: MCTSPLUS: -310
+2: PIMC: 338
+3: PIMC: 466

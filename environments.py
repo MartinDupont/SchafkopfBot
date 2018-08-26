@@ -7,12 +7,12 @@ for deciding which game to play. They also run the games.
 
 import constants as con
 from random import shuffle
-from bots import DumbBot, ProxyBot
+from bots import DumbBot, ProxyBot, HeuristicBot
 from MCTSPlus import MonteCarloPlus, MonteCarloPoints, MonteCarloPruning
 from pimc import PerfectInformationMonteCarlo
 from gamestate import GameState
 
-agents_dict = {"DUMB":DumbBot, "PROXY": ProxyBot,
+agents_dict = {"DUMB":DumbBot, "PROXY": ProxyBot, "HEURISTIC": HeuristicBot,
                "MCTSPLUS":MonteCarloPlus, "POINTS":MonteCarloPoints, 
                "PRUNING": MonteCarloPruning, "PIMC":PerfectInformationMonteCarlo}
 
@@ -48,10 +48,13 @@ class Arena:
             self.agents[i].hand = self.deck[i*8:(i+1)*8]
         
     def who_will_play(self):
+        """ Asks each player in order if they would like to play. 
+        Each player is informed whether the previous players have shown an 
+        interest in playing."""
         will_play = []
-        for i in range(4):
-            if self.agents[i].play_or_not(i):
-                will_play += [i]
+        bid_order = [(self.comes_out + i) % 4 for i in range(4)]
+        for i in bid_order:
+            will_play += [(i, self.agents[i].play_or_not(will_play))]
         return will_play
     
     def new_game(self, verbose=True):
@@ -60,14 +63,16 @@ class Arena:
         
         will_play = self.who_will_play()
                 
-        if not will_play:
+        if not any(x[1] for x in will_play):
             game_mode = "Ramsch"
             offensive_player = None
         else:
             prefs = []
-            for i in will_play:
-                preference = self.agents[i].play_with(i)
-                prefs += [(i, preference)]
+            for i, t in will_play:
+                # will_play is ordered by who bid first
+                if t:
+                    preference = self.agents[i].play_with(i)
+                    prefs += [(i, preference)]
             final_choice =  max(prefs, key = lambda x: con.GAME_PRIORITY[x[1]])
             # in case of a tie, max returns the first maximum encountered, 
             # Thus preserving the correct order of preferences. 
@@ -141,7 +146,7 @@ class HumanInterface(Arena):
                 b_list += [bot_name]
             else:
                 b_list += ["PROXY"]
-        self.real_player = p
+        self.robot_player = p
         super().__init__(b_list, comes_out)
 
         
@@ -150,12 +155,12 @@ class HumanInterface(Arena):
     # play_round must be altered to print out what the bot is doing. 
     def who_will_play(self):
         will_play = []
-        for i in range(4):
+        bid_order = [(self.comes_out + i) % 4 for i in range(4)]
+        for i in bid_order:
             choice = self.agents[i].play_or_not(i)
-            if choice:
-                will_play += [i]
+            will_play += [(i, choice)]
             
-            if i == self.real_player:
+            if i == self.robot_player:
                 if choice:
                     print("Player {} would like to play.".format(i))
                 else:
@@ -167,7 +172,7 @@ class HumanInterface(Arena):
     def deal_cards(self):
         for i in range(4):
             self.agents[i].reset()
-            if i == self.real_player:
+            if i == self.robot_player:
                 while True:
                     input_string = input("Please type in your hand as a space-separated list of card identifiers: ")
                     cards = input_string.strip().upper().split(" ")

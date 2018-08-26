@@ -24,13 +24,13 @@ def parallel_matches(bots_list, n_matches):
             final_scores[p] += score
     return final_scores
 
-def run_matches(tup):
+def run_matches(tup, verbose=False):
     bots_list = tup[0]
     n_matches = tup[1]
     arena = Arena(bots_list)
     
     for i in range(n_matches):
-        arena.new_game(verbose = True)
+        arena.new_game(verbose = verbose)
         
     return arena.points_totals
 
@@ -38,12 +38,12 @@ def run_matches(tup):
 
 if __name__ == "__main__":        
  
-    n_matches = 12000
+    n_matches = 35
         
     #botstring = ["MCTSPLUS", "PIMC", "MCTSPLUS", "PIMC" ]
     #botstring = ["MCTS", "MCTSPLUS", "DUMB", "DUMB"]
-    bots_list = ["DUMB", "DUMB", "DUMB", "DUMB"]
-    #botstring = ["MCTSPLUS", "MCTSPLUS", "MCTSPLUS", "MCTSPLUS" ]
+    bots_list = ["HEURISTIC", "HEURISTIC", "MCTSPLUS", "MCTSPLUS"]
+    #bots_list = ["MCTSPLUS", "MCTSPLUS", "PIMC", "PIMC" ]
     result = parallel_matches(bots_list, n_matches)
     print("=== Final Scores ===")
     print("n_matches: {}".format(n_matches))
