@@ -6,7 +6,7 @@ Created on Sun Aug 12 13:30:29 2018
 """
 
 import constants as con
-from bots import DumbBot
+from bots import DumbBot, HeuristicBot
 from nodes import SimpleNode, assign_hands
 import time
 import math
@@ -14,7 +14,7 @@ import random
 from collections import defaultdict
 
 
-class PerfectInformationMonteCarlo(DumbBot):
+class PerfectInformationMonteCarlo(HeuristicBot):
     """ Follows a very straightfoward implementation of a perfect-information
     monte-carlo (PIMC):
     """

@@ -37,4 +37,6 @@
 
 # I CAN make a total ordering on cards, have all 7's =1 , 8's =2 etc... up to H7 ... EO. ! can now define a play_highest_card.
 
-# I can make a good heuristic by estimating the number of hands I can expecct to win! Should be very easy. 
+#ROBOT in humanInterface never states his preferences!
+
+# Eliminate equivalent card choices in tree search

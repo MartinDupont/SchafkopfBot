@@ -5,3 +5,21 @@ n_matches: 3500
 1: MCTSPLUS: -310
 2: PIMC: 338
 3: PIMC: 466
+
+
+=== Final Scores ===
+n_matches: 3000
+--------------------
+0: HEURISTIC: -478
+1: HEURISTIC: -738
+2: MCTSPLUS: 552
+3: MCTSPLUS: 664
+
+
+=== Final Scores ===
+n_matches: 3000
+--------------------
+0: MCTSPLUS: -58
+1: PIMC: 76
+2: MCTSPLUS: -92
+3: PIMC: 74
