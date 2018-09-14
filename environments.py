@@ -5,16 +5,14 @@ multiple agents, dealing them cards, and conducting the bidding process
 for deciding which game to play. They also run the games.
 """
 
-import constants as con
+import constants.constants as con
 from random import shuffle
-from bots import DumbBot, ProxyBot, HeuristicBot
-from MCTSPlus import MonteCarloPlus, MonteCarloPoints, MonteCarloPruning
-from pimc import PerfectInformationMonteCarlo
+from bots import DumbBot, ProxyBot, HeuristicBot, MonteCarloBot, MonteCarloPointsBot, PerfectInformationMonteCarloBot
 from gamestate import GameState
 
 agents_dict = {"DUMB":DumbBot, "PROXY": ProxyBot, "HEURISTIC": HeuristicBot,
-               "MCTSPLUS":MonteCarloPlus, "POINTS":MonteCarloPoints, 
-               "PRUNING": MonteCarloPruning, "PIMC":PerfectInformationMonteCarlo}
+               "MCTSPLUS":MonteCarloBot, "POINTS":MonteCarloPointsBot,
+               "PIMC":PerfectInformationMonteCarloBot}
 
 
 class Arena:

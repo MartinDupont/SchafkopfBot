@@ -6,11 +6,9 @@ Created on Sat Jul 28 22:12:47 2018
 """
 
 import unittest
-
 from gamestate import GameState
 from bots import BaseBot, DumbBot, HeuristicBot
-from MCTSPlus import MonteCarloPlus
-import constants as con
+from constants import constants as con
 
 class Check_BaseBot(unittest.TestCase):
     def setUp(self):

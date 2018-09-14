@@ -7,7 +7,8 @@ Created on Fri Aug  3 16:02:47 2018
 
 import unittest
 
-from MCTSPlus import MonteCarloPlus, Node
+from bots import MonteCarloBot
+from nodes import Node
 from gamestate import GameState
 
 
@@ -28,7 +29,7 @@ class TestNodes(unittest.TestCase):
 class Check_MCTS(unittest.TestCase):
     """ Really gotta expand this"""
     def setUp(self):
-        self.bot = MonteCarloPlus()
+        self.bot = MonteCarloBot()
         self.bot.hand = ['G7_', 'HO_', 'EO_', 'GU_', 'HU_', 'SA_', 'GK_', 'EK_']
         game_mode = "Herz Solo"
         self.state = GameState(game_mode = game_mode, offensive_player = 0, active=0)
@@ -42,7 +43,7 @@ class Check_MCTS(unittest.TestCase):
 
 class TestMonteCarlo(unittest.TestCase):
     def setUp(self):
-        self.bot = MonteCarloPlus()
+        self.bot = MonteCarloBot()
         
     def test_tree(self):
         """ Test a case where the optimal move is known, and the search tree

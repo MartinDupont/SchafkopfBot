@@ -14,7 +14,7 @@ is handed by the Arena objects in environments.py
 
 #from typing import NamedTuple
 from collections import namedtuple
-import constants as con
+from constants import constants as con
 
 class GameState():
     """ This is just a factory which returns the different gamestates for 

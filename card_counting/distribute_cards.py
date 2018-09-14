@@ -1,9 +1,9 @@
 """
 
 """
+from constants import constants as con
 import random
 from collections import defaultdict
-import copy
 
 def reorder_constraints(card_constraints):
     """ 

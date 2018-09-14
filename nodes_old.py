@@ -67,30 +67,15 @@ def increment_legal_moves(state, card, players_may_have):
             players_may_have[active] = temp
     
     return players_may_have
-
-
-
-#def how_many(state, p_id):
-#    """ Determines how many cards each player should have in their hand.
-#    Returns
-#    -------
-#    dict
-#        A dict mapping player number to number of required cards. 
-#    """
-#    other_players = [(i + p_id) % 4 for i in range(1, 4)]
-#    counts = {p:8 for p in other_players}
-#    for p, card in state.player_card_tuples(state.history):
-#        if p != p_id:
-#            counts[p] -= 1
-#        
-#    return counts
     
+
 def assign_hands(state, p_hand, p_id):
     """ Returns a dict of possible hands for a player given that we know
     the hand of player p_id. Returns only A plausible solution. """
     card_constraints, number_constraints = inverse_legal_moves(state, p_hand, p_id)
     result = distribute_cards(card_constraints, number_constraints)
     return result
+
 
 class Node:
     def __init__(self, state, p_hand, p_id):

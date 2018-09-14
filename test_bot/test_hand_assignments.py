@@ -7,10 +7,8 @@ Created on Thu Aug  2 18:46:12 2018
 
 import unittest
 import random
-from nodes import inverse_legal_moves, assign_hands
-from distribute_cards import distribute_cards, only_choice, only_choice_pairs, propagate_constraints
+from card_counting import inverse_legal_moves, assign_hands, distribute_cards, propagate_constraints
 from gamestate import GameState
-import copy
 
 class inverseLegal(unittest.TestCase):
     """ Check that the function can correctly detect which cards cannot belong 
