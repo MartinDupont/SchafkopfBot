@@ -38,11 +38,11 @@ def run_matches(tup, verbose=False):
 
 if __name__ == "__main__":        
  
-    n_matches = 3000
+    n_matches = 40
         
     #botstring = ["MCTSPLUS", "PIMC", "MCTSPLUS", "PIMC" ]
-    #botstring = ["MCTS", "MCTSPLUS", "DUMB", "DUMB"]
-    bots_list = ["MCTSPLUS", "PIMC", "MCTSPLUS", "PIMC"]
+    bots_list = ["MCTSPLUS", "PIMC", "DUMB", "DUMB"]
+    #bots_list = ["MCTSPLUS", "PIMC", "MCTSPLUS", "PIMC"]
     #bots_list = ["MCTSPLUS", "MCTSPLUS", "PIMC", "PIMC" ]
     result = parallel_matches(bots_list, n_matches)
     print("=== Final Scores ===")
