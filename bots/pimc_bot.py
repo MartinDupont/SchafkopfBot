@@ -114,7 +114,7 @@ class PerfectInformationMonteCarloBot(HeuristicBot):
         count = 0
         start = time.time()
         t = time.time() - start
-        depth=0
+        depth = 0
         win_probabilities = {}
         while t < 2:
             root_node = self.roots[w]

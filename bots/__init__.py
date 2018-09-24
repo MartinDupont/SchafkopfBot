@@ -12,4 +12,3 @@ from bots.mcts_bot import MonteCarloBot
 from bots.mcts_points_bot import MonteCarloPointsBot
 from bots.pimc_bot import PerfectInformationMonteCarloBot
 from bots.proxy_bot import ProxyBot
-from bots.thing import Thing

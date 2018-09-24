@@ -80,6 +80,6 @@ class Node:
     
     def assign_hands(self):
         """ Generate a set of plausible hands given the play history."""
-        result = distribute_cards(self.card_constraints, self.number_constraints, check = False)
+        result = distribute_cards(self.card_constraints, self.number_constraints)
         result[self.p_id] = set(self.p_hand)
         return result

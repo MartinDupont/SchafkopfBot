@@ -5,7 +5,7 @@ Created on Fri Sep 14 10:44:48 2018
 @author: martin
 """
 from .node import Node
-
+from card_counting import filter_equivalent_cards
 
 class SimpleNode(Node):
     """ A node which, instead of calculating all possible cards a player 
@@ -18,8 +18,7 @@ class SimpleNode(Node):
         self.parent = None
         self.state = state
         self.hands = {p: set(hand) for p, hand in hands.items()}
-        
-        self.untried_actions = set(state.actions(self.hands[state.active]))
+        self.untried_actions = set(filter_equivalent_cards(state, state.actions(self.hands[state.active])))
 
     def get_hand(self):
         """ This is just here so that the print_tree function has something to print."""

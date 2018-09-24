@@ -117,6 +117,15 @@ POINTS_REORDERED = {0 : ['S7_', 'S8_', 'S9_', 'G7_', 'G8_', 'G9_', 'H7_' ,'H8_' 
                     2 : ['SU_', 'GU_', 'HU_', 'EU_']}
 
 POINTS = reorder_dict(POINTS_REORDERED)
+
+# ====================== Categories of Cards ================================ #
+OBERS            = ["SO_", "HO_", "GO_", "EO_"]
+UNTERS           = ["SU_", "HU_", "GU_", "EU_"]
+EICHEL_SPATZEN   = ["E7_", "E8_", "E9_"]
+GRAS_SPATZEN     = ["G7_", "G8_", "G9_"]
+HERZ_SPATZEN     = ["H7_", "H8_", "H9_"]
+SCHELLEN_SPATZEN = ["S7_", "S8_", "S9_"]
+
 # ====================== Card-Vector Translation ============================ #
 
 card_vec_dict = {card: i for i, card in enumerate(ALL_CARDS)}
@@ -136,7 +145,7 @@ def vec_2_cards(vector):
         out += [vec_card_dict[i]]
     return out
 
-# ========================== Abstract Factory =============================== #
+# ========================== Abstract Factories ============================= #
 
 def constants_factory(game_mode):
     """Different game modes will have different trump cards, different suits,
@@ -158,6 +167,20 @@ def constants_factory(game_mode):
     suit_dictionary = SUITS_MAPPING[game_mode]
     
     return card_ordering, trump_ordering, called_ace, suit_dictionary
+
+def get_categories(game_mode):
+    if game_mode == "Wenz":
+        return [UNTERS,
+                EICHEL_SPATZEN,
+                GRAS_SPATZEN,
+                HERZ_SPATZEN,
+                SCHELLEN_SPATZEN]
+    return [OBERS, 
+            UNTERS,
+            EICHEL_SPATZEN,
+            GRAS_SPATZEN,
+            HERZ_SPATZEN,
+            SCHELLEN_SPATZEN]
 
 
 def make_play_order(i):

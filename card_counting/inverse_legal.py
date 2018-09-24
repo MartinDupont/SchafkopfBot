@@ -74,3 +74,32 @@ def assign_hands(state, p_hand, p_id):
     card_constraints, number_constraints = inverse_legal_moves(state, p_hand, p_id)
     result = distribute_cards(card_constraints, number_constraints)
     return result
+
+def filter_equivalent_cards(state, hand):    
+    all_categories = con.get_categories(state.game_mode)
+    filtered_cards = [card for card in hand if not any(card in cat for cat in all_categories)]
+    if len(filtered_cards) == len(hand):
+        return filtered_cards
+        # No cards in any special category. Bail out early and save computation time. 
+    
+    temp = [x[1] for x in state.player_card_tuples(state.history)]
+    round_start, junk = divmod(len(state.history), 16) # is 4*4
+    cards_played_last_rounds = temp[0:round_start * 4]
+    
+    for cat in all_categories:
+        cat_in_hand = sorted([card for card in hand if card in cat], key=lambda x: cat.index(x))
+        cat_remaining = [card for card in cat if not card in cards_played_last_rounds]
+    
+        previous = -2
+        # if there are no unplayed cards whose rank is between the two cards in
+        # the players hand, then it doesn't matter which card is played. 
+        for c in cat_in_hand:
+            rank = cat_remaining.index(c)
+            if rank != previous + 1:
+                filtered_cards += [c]
+            previous = rank
+        
+    return filtered_cards
+    
+    
+    

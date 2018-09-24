@@ -7,7 +7,7 @@ Created on Thu Aug  2 18:46:12 2018
 
 import unittest
 import random
-from card_counting import inverse_legal_moves, assign_hands, distribute_cards, propagate_constraints
+from card_counting import inverse_legal_moves, assign_hands, distribute_cards, propagate_constraints, filter_equivalent_cards
 from gamestate import GameState
 
 class inverseLegal(unittest.TestCase):
@@ -184,8 +184,65 @@ class handAssignmentsFullGames(unittest.TestCase):
                     arbitrary_assignment = assign_hands(state, hands[i],i )
                     # try and assign some hands. If he can't find a solution, it will raise an exception. 
         
+class CheckFilterEquivalentCards(unittest.TestCase):
+    def setUp(self):
+        self.state_1 = GameState(game_mode = "Partner Eichel", offensive_player = 1, active=0)
+        self.state_2 = GameState(game_mode = "Wenz", offensive_player = 1, active=0)
+        self.fixed_history_1 = ["E7_", "E8_", "E9_", "GO_", "H8_"]
+        self.fixed_history_2 = ["EA_", "E10", "E8_", "HU_", "EU_"]
+        #self.fixed_history_3 = ["E8", "E10", "EK_", "EA_"]
     
-    
+    def test_equivalent_obers(self):
+        state = self.state_1
+
+        for card in self.fixed_history_1:
+            state = state.result(card)
+        
+        result = filter_equivalent_cards(state, ["HO_", "EO_"])
+        expected = ["HO_"]
+        self.assertEqual(result, expected)
+        
+    def test_ignore_current_round(self):
+        """ If someone else has played a card between two of my cards, in 
+        the current round, then my cards cannot be considered equivalent. """
+        state = self.state_1
+
+        for card in self.fixed_history_1:
+            state = state.result(card)
+        
+        result = filter_equivalent_cards(state, ["H7_", "H9_"])
+        expected = ["H7_", "H9_"]
+        self.assertEqual(result, expected)
+        
+
+    def test_equivalent_unters(self):
+        state = self.state_1
+        for card in self.fixed_history_2:
+            state = state.result(card)
+            
+        result = filter_equivalent_cards(state, ["SU_", "GU_", "E7_", "S7_", "G7_"])
+        expected = ["SU_", "E7_", "S7_", "G7_"]
+        self.assertEqual(set(result), set(expected))
+        
+    def test_equivalent_spatzen(self):
+        state = self.state_1
+        for card in self.fixed_history_2:
+            state = state.result(card)
+            
+        result = filter_equivalent_cards(state, ["E7_", "E9_", "EK_"])
+        expected = ["E7_", "EK_"]
+        self.assertEqual(set(result), set(expected))
+        
+    def test_wenz_ignore_obers(self):
+        """ Obers are not trumps in a wenz. """
+        state = self.state_2
+        for card in self.fixed_history_1:
+            state = state.result(card)
+        
+        result = filter_equivalent_cards(state, ["SO_", "HO_", "EO_"])
+        expected = ["SO_", "HO_", "EO_"]
+        self.assertEqual(set(result), set(expected))
+        
     
 if __name__ == "__main__":    
     unittest.main()
