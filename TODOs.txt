@@ -26,17 +26,16 @@
 
 # STATE NEEDS TO CHECK IF THE PLAYERS HAVE PLAYED IN A GOOD ORDER.
 
-# Put in multiprocessing for battle-royale. 
-
-
 # Add in a special exception that says when someone has misplayed!
 
 # Make it so that humans can reset the game state to a previous round. Current interface chokes up all the time.
 
-# Need a heuristic agent. 
 
 # I CAN make a total ordering on cards, have all 7's =1 , 8's =2 etc... up to H7 ... EO. ! can now define a play_highest_card.
 
-#ROBOT in humanInterface never states his preferences!
+# TESTING HOLE: I DON'T CHECK THAT ARENA CORRECTLY ASKS PEOPLE TO BID AND INCREMENTS PLAYER NUMBER AT THE END OF THE ROUND!
 
-# Eliminate equivalent card choices in tree search
+# BUG: play_or_not does not currently work for ProxyBot because in order to print out his string correctly, he needs to know which player number he has, 
+and not just how many people played before him. 
+
+# REPLACE PROXYBOT. This was a shitty idea. Just integrate it into the HumanInterface. 

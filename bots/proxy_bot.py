@@ -4,7 +4,7 @@ Created on Sun Sep  9 21:25:48 2018
 
 @author: martin
 """
-import constants as con
+from constants import constants as con
 from .base_bot import BaseBot
 
 

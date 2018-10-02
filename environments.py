@@ -69,8 +69,10 @@ class Arena:
             for i, t in will_play:
                 # will_play is ordered by who bid first
                 if t:
-                    preference = self.agents[i].play_with(i)
+                    preference = self.agents[i].play_with(prefs) # hack
                     prefs += [(i, preference)]
+                else:
+                    prefs += [(i, None)]
             final_choice =  max(prefs, key = lambda x: con.GAME_PRIORITY[x[1]])
             # in case of a tie, max returns the first maximum encountered, 
             # Thus preserving the correct order of preferences. 
@@ -84,7 +86,8 @@ class Arena:
                 print("Nobody wanted to play.")
             else:
                 for i, preference in prefs:
-                    print('Player {} wanted to play a {}'.format(i, preference))
+                    if not preference is None:
+                        print('Player {} wanted to play a {}'.format(i, preference))
                     
             
         state = GameState(game_mode = game_mode,
@@ -155,7 +158,7 @@ class HumanInterface(Arena):
         will_play = []
         bid_order = [(self.comes_out + i) % 4 for i in range(4)]
         for i in bid_order:
-            choice = self.agents[i].play_or_not(i)
+            choice = self.agents[i].play_or_not(will_play)
             will_play += [(i, choice)]
             
             if i == self.robot_player:

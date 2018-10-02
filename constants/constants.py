@@ -79,7 +79,8 @@ GAME_MODE_TO_ACES = {'Partner Schellen': 'SA_', 'Partner Eichel': 'EA_',
 
 GAME_PRIORITY = {'Herz Solo': 3, 'Gras Solo': 3, 'Eichel Solo': 3,
                  'Schellen Solo': 3, 'Wenz': 2, 'Partner Schellen': 1,
-                 'Partner Eichel': 1, 'Partner Gras': 1, "Ramsch": float("-inf")}
+                 'Partner Eichel': 1, 'Partner Gras': 1,
+                 "Ramsch": 0, None: float("-inf")}
 
 NORMAL_ORDERING = ('7_', '8_', '9_', 'K_', '10', 'A_')
 WENZ_ORDERING = ('7_', '8_', '9_', 'O_', 'K_', '10', 'A_')

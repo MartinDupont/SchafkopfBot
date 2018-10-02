@@ -44,4 +44,4 @@ Alternatively, one can run the parallel_matches function in multirounds.py, whic
 
 ## Misc.
 
-As of the 2nd of August 2018, the computer agent is still being refined and tested, so I will refrain from posting any detailed summary on how the different game playing agents work. 
+As of the 2nd of October 2018, the computer agent is still being refined and tested, so I will refrain from posting any detailed summary on how the different game playing agents work. 
