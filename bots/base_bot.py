@@ -9,16 +9,16 @@ import copy
 
 class BaseBot():
     def __init__(self):
-        self._hand = None
+        self._hand = []
     
     def reset(self):
-        self.hand = None
+        self.hand = []
     # ------------------------------------------------
     def get_hand(self):
         return self._hand
     
     def set_hand(self, hand): 
-        if not (hand is None):
+        if hand:
             if not all([a in con.ALL_CARDS for a in hand]):
                 raise ValueError("These aren't valid cards")
             l_s_h = len(set(hand))
@@ -28,7 +28,9 @@ class BaseBot():
                                  "len(set(hand)) = {}, len(hand) = {}".format(l_s_h, l_h))
             if l_s_h != 8:
                 raise ValueError("You only gave me {} card(s).".format(l_s_h))
-        self._hand = copy.deepcopy(hand)
+            self._hand = list(hand)
+        else:
+            self._hand = []
     hand = property(get_hand, set_hand)
     # -------------------------------------------       
     def allowable_partner_games(self, hand):

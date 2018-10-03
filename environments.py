@@ -43,7 +43,7 @@ class Arena:
         shuffle(self.deck)
         for i in [(self.comes_out + i) % 4 for i in range(4)]:
             self.agents[i].reset()
-            self.agents[i].hand = self.deck[i*8:(i+1)*8]
+            self.agents[i].hand = self.deck[i * 8:(i + 1) * 8]
         
     def who_will_play(self):
         """ Asks each player in order if they would like to play. 
