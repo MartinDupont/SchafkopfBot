@@ -43,7 +43,7 @@ class Arena:
         shuffle(self.deck)
         for i in [(self.comes_out + i) % 4 for i in range(4)]:
             self.agents[i].reset()
-            self.agents[i].hand = self.deck[i * 8:(i + 1) * 8]
+            self.agents[i].hand = self.deck[i * 8: (i + 1) * 8]  
         
     def who_will_play(self):
         """ Asks each player in order if they would like to play. 
@@ -55,12 +55,7 @@ class Arena:
             will_play += [(i, self.agents[i].play_or_not(will_play))]
         return will_play
     
-    def new_game(self, verbose=True):
-        """ Set up a new game, and then play each hand using play_game. """
-        self.deal_cards()
-        
-        will_play = self.who_will_play()
-                
+    def decide_game_mode(self, will_play, verbose):
         if not any(x[1] for x in will_play):
             game_mode = "Ramsch"
             offensive_player = None
@@ -69,17 +64,13 @@ class Arena:
             for i, t in will_play:
                 # will_play is ordered by who bid first
                 if t:
-                    preference = self.agents[i].play_with(prefs) # hack
+                    preference = self.agents[i].play_with(prefs)
                     prefs += [(i, preference)]
                 else:
                     prefs += [(i, None)]
-            final_choice =  max(prefs, key = lambda x: con.GAME_PRIORITY[x[1]])
-            # in case of a tie, max returns the first maximum encountered, 
-            # Thus preserving the correct order of preferences. 
-            offensive_player = final_choice[0]
-            game_mode = final_choice[1]
-       
-          
+        
+            offensive_player, game_mode =  max(prefs, key = lambda x: con.GAME_PRIORITY[x[1]])
+            
         if verbose:
             print("=========== Bidding Phase ===========")
             if game_mode == "Ramsch":
@@ -88,14 +79,9 @@ class Arena:
                 for i, preference in prefs:
                     if not preference is None:
                         print('Player {} wanted to play a {}'.format(i, preference))
-                    
             
-        state = GameState(game_mode = game_mode,
-                          offensive_player = offensive_player,
-                          active = self.comes_out)
-        
-        self.play_game(state, verbose)
-        self.comes_out = (self.comes_out+1)%4
+        return game_mode, offensive_player
+    
         
     def play_game(self, state, verbose):
         """ Takes a prepared game_state object and plays rounds to completion.
@@ -136,6 +122,21 @@ class Arena:
         results = tuple(win_points if i == 1 else lose_points for i in utils)
         return results
             
+    def new_game(self, verbose=True):
+        """ Set up a new game, by deciding which type of game is to be played,
+        and then play each game to completion. """
+        self.deal_cards()
+        
+        will_play = self.who_will_play()
+        
+        game_mode, offensive_player = self.decide_game_mode(will_play, verbose)
+            
+        state = GameState(game_mode = game_mode,
+                          offensive_player = offensive_player,
+                          active = self.comes_out)
+        
+        self.play_game(state, verbose)
+        self.comes_out = (self.comes_out + 1) % 4
 
 class HumanInterface(Arena):
     """ Version of the arena that is used to play a chosen robot against 3 other
@@ -201,11 +202,8 @@ class HumanInterface(Arena):
             winner, points = state.calculate_round_winner()
             print("Player {} won the round, gaining {} points".format(winner, points))
         
-        
-        #verbose = True
         if verbose:
             print(state)
-        # update points totals.
             
 
     
