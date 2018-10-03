@@ -34,12 +34,72 @@ class Check_MCTS(unittest.TestCase):
         game_mode = "Herz Solo"
         self.state = GameState(game_mode = game_mode, offensive_player = 0, active=0)
         
+    def test_back_up(self):
+        """ back_up should propagate some utilities back up the tree.
+        Each nodes Q value should be incremented by the utility of the active
+        player. Except the root node, which has Q = 0, as the best_child
+        function is never called on the root node. """
+        root_node = Node(self.state, self.bot.hand, 0)
+        node = root_node
+        for card in ["EK_", "E9_", "E8_", "EA_"]:
+            node.add_child(card)
+            node = node.children[card]
+
+        utils = (1, -1, -0.5, 0.5)
+        # fractional utilities may never be realized, but they allow us to 
+        # tell that the correct utils have been assigned.
+        self.bot.back_up(node, utils)
+        i = 3
+        while not (node.parent is None):
+            self.assertEqual(node.N, 1)
+            self.assertEqual(node.Q, utils[i])
+            i -= 1
+            node = node.parent
+        self.assertEqual(node.N, 1)
+    
+    def test_default_policy(self):
+        """ default_policy just plays random games given a hand assigment, 
+        so we just need to check that it can run to the end and deliver
+        a utility score. """
+        hand_0 = ['EA_', 'EO_', 'S10', 'G8_', 'S7_', 'SA_', 'GU_', 'E7_']
+        hand_1 = ['S8_', 'E10', 'SU_', 'GA_', 'HO_', 'H9_', 'H7_', 'SO_']
+        hand_2 = ['EU_', 'H8_', 'SK_', 'G7_', 'G9_', 'EK_', 'HU_', 'GO_']
+        hand_3 = ['HK_', 'HA_', 'GK_', 'H10', 'E9_', 'G10', 'E8_', 'S9_']  
+        player_dict = {0:hand_0, 1:hand_1, 2:hand_2, 3:hand_3}
+        # random but fixed hands
+        result = self.bot.default_policy(self.state, player_dict)
+        
+        self.assertIsInstance(result, tuple)
+        self.assertEqual(len(result), 4)
+        
+    def test_expand_node(self):
+        """ it should add a child to the node, with the correct actions."""
+        root_node = Node(self.state, self.bot.hand, 0)
+        node, _ = self.bot.expand_node(root_node)
+        
+        action = list(root_node.children.keys())[0]
+        self.assertTrue(action in self.bot.hand)
+        
+    def test_best_child(self):
+        """ it should pick the child with the highest probability of winning."""
+        root_node = Node(self.state, self.bot.hand, 0)
+        q_vals = (5, 0, 0)
+        for i in range(3):
+            node, _ = self.bot.expand_node(root_node)
+            node.N = 5
+            node.Q = q_vals[i]
+        
+        root_node.N = 15
+        best, _ = self.bot.best_child(root_node)
+        self.assertEqual(best.Q, 5)
+        
+    
     def test_play(self):
         """ Check that he can play a single card without error."""
         state = self.state.result("E10")
         action = self.bot.play_card(state)
         expected = "EK_"
-        self.assertEqual(action, expected)        
+        self.assertEqual(action, expected)
 
 class TestMonteCarlo(unittest.TestCase):
     def setUp(self):
@@ -129,15 +189,3 @@ class TestMonteCarlo(unittest.TestCase):
     #                       \         
     #                        |P:0| -- H8 -- |P:1| -- E7 -- |P:2| -- G8 -- |END|
     #=========================================================================#
-
-#
-#    
-#    def test_1(self):
-#        pass
-#    
-#    
-#    
-#            hands = {0: ['SK_', 'S9_', 'EO_', 'H8_', 'SO_', 'EU_', 'E7_', 'E8_'],
-#                 1: ['GK_', 'HA_', 'SU_', 'G8_', 'G10', 'EK_', 'HK_', 'GU_'],
-#                 2: ['S7_', 'S10', 'E9_', 'GA_', 'H10', 'H7_', 'HU_', 'E10'],
-#                 3: ['S8_', 'G9_', 'H9_', 'G7_', 'SA_', 'GO_', 'HO_', 'EA_']}

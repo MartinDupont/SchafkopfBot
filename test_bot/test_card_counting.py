@@ -86,23 +86,19 @@ class distributeCards(unittest.TestCase):
         self.assertEqual(assignment, expected)
         
     def test_case_3(self):
-        card_constraints = {0: {'EA_', 'SU_'}, 2: {'GK_', 'SU_'}, 3: {'EA_'}}
-        number_constraints = {0: 1, 2: 1, 3: 1}
-        pass
+        """ Test that it can solve a case with multiple solutions """
+        card_constraints = {1: {'E8_', 'E9_', 'G10', 'G8_', 'G9_', 'GA_', 'GK_', 'H10',
+                            'H7_', 'H8_', 'H9_', 'HA_', 'HK_', 'S8_', 'S9_'},
+               2: {'E8_', 'E9_', 'G10', 'G8_', 'G9_', 'GA_', 'GK_', 'H10',
+                            'H7_', 'H8_', 'H9_', 'HA_', 'HK_', 'S8_', 'S9_'},
+               3: {'G10', 'G8_', 'G9_', 'GA_', 'GK_'}}        
+            
+        number_constraints = {1: 5, 2: 5, 3: 5} 
+         
+        result = distribute_cards(card_constraints, number_constraints) 
+        for i in card_constraints.keys():
+            self.assertTrue(result[i].issubset(card_constraints[i]))
 
-#    def test_trivial_solution(self):
-#        card_constraints = {0: {'E8_', 'E9_', 'G10', 'G8_', 'G9_', 'GA_', 'GK_', 'H10',
-#                                'H8_', 'H9_', 'HA_', 'HK_'},
-#                            1: {'E8_', 'E9_', 'G10', 'G8_', 'G9_', 'GA_', 'GK_', 'H10',
-#                                'H8_', 'H9_', 'HA_', 'HK_'},
-#                            2: {'E8_', 'E9_', 'G10', 'G8_', 'G9_', 'GA_', 'GK_', 'H10',
-#                                'H8_', 'H9_', 'HA_', 'HK_'}}
-#        number_constraints = {0:4, 1:4, 2:4}
-#        result = trivial_solution(card_constraints, number_constraints)
-#        for key, value in result.items():
-#            self.assertTrue(len(value) == 4)
-        
-    
 
 class checkCatchExceptions(unittest.TestCase):
     def test_1(self):
@@ -164,8 +160,9 @@ class handAssignmentsFullGames(unittest.TestCase):
                     
     def test_full_game_2(self):
             """ Test to see if during the course of a full game, we can correctly
-            deduce which cards the other player has. I'm undecided as to whether
-            we want this test to have a random element or not."""
+            assign cards to players without raising any exceptions. I'm
+            undecided as to whether we want this test to have a random element
+            or not."""
             # Random but fixed hands. 
             hands = {0: {'SK_', 'S7_', 'H10', 'H7_', 'HK_', 'E8_', 'HU_', 'GU_'},
                      1: {'G9_', 'HO_', 'S10', 'H9_', 'EO_', 'E10', 'GO_', 'GK_'},

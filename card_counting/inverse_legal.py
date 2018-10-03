@@ -25,7 +25,7 @@ def inverse_legal_moves(state, hand, p_id):
     other_players = [(i + p_id) % 4 for i in range(1, 4)]
     starting_set = set(con.ALL_CARDS) - hand
     card_constraints = {p: set(starting_set) for p in other_players}
-    number_constraints = {p :8 for p in other_players}
+    number_constraints = {p: 8 for p in other_players}
 
     suits_mapping = con.SUITS_MAPPING[state.game_mode]
     # All other players start with all possible cards that are not in our hand.
@@ -57,7 +57,7 @@ def increment_legal_moves(state, card, players_may_have):
     
     for value in players_may_have.values():
         value.discard(card)
-    if n_played %16 != 0:
+    if n_played % 16 != 0:
         round_str = state.history[-n_played:]
         starting_suit = suits_mapping[round_str[1:4]]
         played_suit = suits_mapping[card]

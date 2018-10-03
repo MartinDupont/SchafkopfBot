@@ -173,9 +173,6 @@ def distribute_cards(card_constraints, number_constraints, check=True):
         card_players = reorder_constraints(solution)
         double_sets = {key: value for key, value in card_players.items() if len(value) > 1}
     return solution
-        
-        
-
 
 if __name__ == "__main__":
 #        pcp = {1: [1,3,4,6,7,8,9], 2: [1,2,4,5,7,8,9], 3: [2,3,5]}
