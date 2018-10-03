@@ -55,7 +55,7 @@ class Arena:
             will_play += [(i, self.agents[i].play_or_not(will_play))]
         return will_play
     
-    def decide_game_mode(self, will_play, verbose):
+    def decide_game_mode(self, will_play, verbose=False):
         if not any(x[1] for x in will_play):
             game_mode = "Ramsch"
             offensive_player = None

@@ -50,6 +50,67 @@ class CheckArena(unittest.TestCase):
         self.assertTrue(set(answers).issubset(true_false))
         self.assertEqual(players, [0, 1, 2, 3])
         
+    def test_decide_game_mode_1(self):
+        """ The arena should play a Ramsch if nobody wants to play. """
+        will_play = [(0, False), (1, False), (2, False), (3, False)]
+        result, offensive_player = self.arena.decide_game_mode(will_play)
+        self.assertEqual(result, "Ramsch")
+        
+    def test_decide_game_mode_2(self):
+        """ If one player is playing, then he gets free choice. """
+        will_play = [(0, True), (1, False), (2, False), (3, False)]
+        def stub(args):
+            return "Schellen Solo"
+        self.arena.agents[0].play_with = stub
+        
+        result = self.arena.decide_game_mode(will_play)
+        self.assertEqual(result, ("Schellen Solo", 0))          
+        
+    def test_decide_game_mode_3(self):
+        """ If two players want to play partner games, the first player gets
+        priority. """
+        will_play = [(3, True), (0, True), (1, False), (2, False)]
+        def stub_1(args):
+            return "Partner Schellen"
+        def stub_2(args):
+            return "Partner Eichel"
+        
+        self.arena.agents[3].play_with = stub_1
+        self.arena.agents[0].play_with = stub_2
+        
+        result = self.arena.decide_game_mode(will_play)
+        self.assertEqual(result, ("Partner Schellen", 3))          
+ 
+    def test_decide_game_mode_4(self):
+        """ If two players want to play different games, solos have priority
+        over partner games. """
+        will_play = [(3, True), (0, True), (1, False), (2, False)]
+        def stub_1(args):
+            return "Partner Schellen"
+        def stub_2(args):
+            return "Herz Solo"
+        
+        self.arena.agents[3].play_with = stub_1
+        self.arena.agents[0].play_with = stub_2
+        
+        result = self.arena.decide_game_mode(will_play)
+        self.assertEqual(result, ("Herz Solo", 0))     
+        
+    def test_decide_game_mode_5(self):
+        """ If two players want to play different games, solos have priority
+        over wenz's. """
+        will_play = [(3, True), (0, True), (1, False), (2, False)]
+        def stub_1(args):
+            return "Wenz"
+        def stub_2(args):
+            return "Herz Solo"
+        
+        self.arena.agents[3].play_with = stub_1
+        self.arena.agents[0].play_with = stub_2
+        
+        result = self.arena.decide_game_mode(will_play)
+        self.assertEqual(result, ("Herz Solo", 0))     
+        
     def test_winner_game_points_1(self):
         """ Does the arena correctly assign points to winning players? """
         result = self.arena.winner_game_points((1, 0, 0, 0))
@@ -63,13 +124,14 @@ class CheckArena(unittest.TestCase):
         expected = (1, 1, -1, -1)
         
         self.assertEqual(result, expected)
+        
     def test_winner_game_points_3(self):
         """ Does the arena correctly assign points to winning players? """
         result = self.arena.winner_game_points((0, 1, 1, 1))
         expected = (-3, 1, 1, 1)
         
-        self.assertEqual(result, expected)        
-    
+        self.assertEqual(result, expected)
+        
     def test_play_full_game(self):
         """ The arena should be able to play a full game to completion. """
         self.arena.new_game(verbose=True)

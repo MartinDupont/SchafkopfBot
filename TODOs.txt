@@ -39,3 +39,8 @@
 and not just how many people played before him. 
 
 # REPLACE PROXYBOT. This was a shitty idea. Just integrate it into the HumanInterface. 
+
+# THINGS THAT MY BIDDING PHASE DOESN"T DO RIGHT:
+	* No Contra or Re
+	* Cards thrown in instead of ramsch if all players are blocked (not an official rule)
+	* Players playing after the first guy must choose a higher game mode. 
