@@ -68,7 +68,9 @@ Implementing the bidding phase had to be done heuristically. Running a search st
 
 Both the agents rely on some complicated card counting to assign valid hands to players given the game history. The math is nontrivial, so I will provide a writeup that explains how I distribute plausible hands to players. 
 
-Both AI agents peform roughly equally well. Both have the same bidding algorithm however.
+Both AI agents peform roughly equally well. Both have the same bidding algorithm however. 
+
+Both the Agents have a massive advantage over a randomly-playing agent, however neither play near human level.
 
 # Current Limitations.
 
