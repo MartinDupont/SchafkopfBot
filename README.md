@@ -66,7 +66,7 @@ This agent also prunes the search tree by not considering cards that are equival
 
 Implementing the bidding phase had to be done heuristically. Running a search strategy to decide which game mode to bid for would not be particularly practical, as both my agents would have to simulate full hypothetical games, and decide which game mode has the highest chance of winning given his cards. We know that due to the high branching factor, the agent is not particularly useful in the early game, so this would not lead to good bidding strategies. 
 
-Both the agents rely on some complicated card counting to assign valid hands to players given the game history. The math is nontrivial, so I will provide a writeup that explains how I distribute plausible hands to players. 
+Both the agents rely on some complicated card counting to assign valid hands to players given the game history. The math is nontrivial, so I have provided a writeup that explains how I distribute plausible hands to players, in the folder math_explained.
 
 Both AI agents peform roughly equally well. Both have the same bidding algorithm however. 
 
