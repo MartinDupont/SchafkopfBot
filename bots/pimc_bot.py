@@ -29,14 +29,10 @@ class PerfectInformationMonteCarloBot(HeuristicBot):
     # -------------------------  
     def tree_policy(self, node):
         """ If the node has not been fully expanded, we add a child node
-        and run the default policy on it, delivering a node and utilities. 
-        Sometimes, the node may actually not be expandable, and we raise an error"""
+        and run the default policy on it, delivering a node and utilities."""
         while not node.state.terminal_test():
             if not node.is_fully_expanded():
-                try:
-                    return self.expand_node(node)
-                except AssertionError:
-                    continue
+                return self.expand_node(node)
             else:
                 node, _ = self.best_child(node)
         return node, node.state.utilities()  

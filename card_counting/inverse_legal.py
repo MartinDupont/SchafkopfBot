@@ -13,9 +13,6 @@ def inverse_legal_moves(state, hand, p_id):
     calling the function, for each player we find a set of cards that have not
     been ruled out by the history. 
     
-    This only considers when a player played a card of the wrong suit.
-    This means that in a partner game, when a player "runs away", this function
-    will not be able to detect who has the ace. 
 
     Returns
     -------
@@ -30,15 +27,15 @@ def inverse_legal_moves(state, hand, p_id):
     # All other players start with all possible cards that are not in our hand.
     count = 0
     
-    # ---------------- stuff to deal with running away ---------------------- #
+    # ---------------- stuff to deal with parnter games --------------------- #
     if state.game_mode in con.PARTNER_GAMES:
-        check_for_running_away = True  # davonlaufen
+        check_for_called_ace = True  # davonlaufen
         called_ace = con.GAME_MODE_TO_ACES[state.game_mode]
         called_suit = suits_mapping[called_ace]
         remaining_cards_of_called_suit = 6
         ace_was_played = False
     else:
-        check_for_running_away = False
+        check_for_called_ace = False
     # ----------------------------------------------------------------------- #
     for p, card in state.player_card_tuples(state.history):
         if count == 0:
@@ -53,21 +50,27 @@ def inverse_legal_moves(state, hand, p_id):
             if (suit != starting_suit) and (p != p_id):
                 temp = {c for c in card_constraints[p] if  suits_mapping[c] != starting_suit}                
                 card_constraints[p] = temp
-    
-        if check_for_running_away:
+        
+        if check_for_called_ace:
             if suits_mapping[card] == called_suit:
                 remaining_cards_of_called_suit -= 1                
             if starting_suit == called_suit:
                 if card == called_ace:
                     ace_was_played = True
+                    check_for_called_ace = False
+                elif count != 0 and p != p_id:
+                    # If anyone but the first player doesn't play the called
+                    # ace, then they cannot have it. 
+                    card_constraints[p].discard(called_ace)
                 if count == 3 and not ace_was_played:
-                    # ran away. 
+                    # The guy who opened must have run away. 
                     player_who_ran = (p - 3) % 4
-                    check_for_running_away = False
+                    check_for_called_ace = False
                     for p_2 in other_players:
                         if p_2 != player_who_ran:
-                            card_constraints[p_2].discard(called_ace)
                             if remaining_cards_of_called_suit == 3:
+                                # You can only run away if you have 4 or more
+                                # of the called colour.
                                 temp = {c for c in card_constraints[p_2] if  suits_mapping[c] != called_suit} 
                                 card_constraints[p_2] = temp
         count = (count + 1) % 4     
@@ -126,5 +129,56 @@ def filter_equivalent_cards(state, hand):
         
     return filtered_cards
     
+def filter_playable_cards(card_constraints, number_constraints, player, starting_suit, game_mode):
+    """ Given the list of card constraints, i.e. cards a player may have, it
+    is quite hard to figure out what cards they may play in a given situation. 
+    Despite not knowing exactly what cards they have, we can sometimes narrow
+    down our choices for what they can and cannot play. This will handily
+    reduce the size of the search tree."""
+    suits_mapping = con.SUITS_MAPPING[game_mode]
+    if game_mode in con.PARTNER_GAMES:
+        called_ace = con.GAME_MODE_TO_ACES[game_mode]
+        called_suit = con.GAME_MODE_TO_SUITS[game_mode]
+        
+    
+    if starting_suit == None:
+        if game_mode in con.PARTNER_GAMES:
+            cards_called_colour = {
+                    c for c in card_constraints[player] if suits_mapping[c] == called_suit}
+            n_cards_called_colour =  len(cards_called_colour)
+            
+            if n_cards_called_colour < 4:
+                allowed = {c for c in card_constraints[player] if 
+                           (c == called_ace) or (suits_mapping[c] != called_suit)}
+                return allowed
+                # can open with the ace, but not any other card of the called
+                # colour, unless I run away. 
+        return card_constraints[player]
     
     
+    cards_remaining = set()
+    for card_set in card_constraints.values():
+        cards_remaining.update(card_set)
+    n_cards_possible = len(card_constraints[player])
+    cards_remaining_of_played_suit = {c for c in cards_remaining if suits_mapping[c] == starting_suit}
+    n_cards_of_played_suit = len(cards_remaining_of_played_suit)
+    
+    other_players = [p for p in card_constraints.keys() if not p == player]
+    if game_mode in con.PARTNER_GAMES:
+        if starting_suit == con.GAME_MODE_TO_SUITS[game_mode]:
+            if called_ace in card_constraints[player] and not any(
+                    called_ace in card_constraints[p] for p in other_players):
+                # This guy is the only guy who can have the ace. 
+                return {called_ace}
+    
+    only_this_player_can_have = card_constraints[player].difference(
+            card_constraints[other_players[0]]).difference(
+                    card_constraints[other_players[1]])
+    only_this_player_suit = {c for c in only_this_player_can_have if suits_mapping[c] == starting_suit}
+    
+    if (number_constraints[player] > n_cards_possible - n_cards_of_played_suit) or only_this_player_suit:
+        # There is no universe in which the player in question is free. 
+        return card_constraints[player].intersection(cards_remaining_of_played_suit)
+    else:
+        # There is a possibility that the player is free.
+        return card_constraints[player]

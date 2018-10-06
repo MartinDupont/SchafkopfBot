@@ -7,7 +7,8 @@ Created on Thu Aug  2 18:46:12 2018
 
 import unittest
 import random
-from card_counting import inverse_legal_moves, assign_hands, distribute_cards, propagate_constraints, filter_equivalent_cards
+import card_counting as cc
+from card_counting import inverse_legal_moves, assign_hands, distribute_cards, propagate_constraints, filter_equivalent_cards, filter_playable_cards
 from gamestate import GameState
 from constants import constants as con
 
@@ -284,6 +285,122 @@ class CheckFilterEquivalentCards(unittest.TestCase):
         expected = ["SO_", "HO_", "EO_"]
         self.assertEqual(set(result), set(expected))
         
+class CheckFilterPlayableCards(unittest.TestCase):
+    def test_1(self):
+        """ If, amongst the cards that can only belong to the current player, 
+        one of them is of the played suit, then the player has to play those
+        cards. """
+        
+        card_constraints = {1: {"E7_", "E8_", "S7_", "S8_", "S9_"},
+                            2: {"G7_", "G8_", "S7_", "S8_", "S9_"},
+                            3: {"G7_", "G8_", "S7_", "S8_", "S9_"}}
+        
+        number_constraints = {1:3, 2:3, 3:3}
+        game_mode = "Herz Solo"
+        starting_suit = "Eichel"
+        result = filter_playable_cards(card_constraints, number_constraints, 1,
+                              starting_suit, game_mode)
+        expected = {"E7_", "E8_"}
+        self.assertEqual(expected, result)
     
+        
+    def test_2(self):
+        """ If there is no way of dealing out a hand to the current player, 
+        in which he doesn't have a card of the played suit, then he can only
+        play cards of the played suit."""
+        
+        card_constraints = {1: {"E7_", "E8_", "S7_"},
+                            2: {"E7_", "E8_", "H7_"},
+                            3: {"G7_", "G8_", "G9_"}}
+        
+        number_constraints = {1:2, 2:2, 3:2}
+        game_mode = "Herz Solo"
+        starting_suit = "Eichel"
+        result = filter_playable_cards(card_constraints, number_constraints, 1,
+                              starting_suit, game_mode)
+        expected = {"E7_", "E8_"}
+        self.assertEqual(expected, result)
+        
+    def test_3(self):
+        """ If, when playing a partner game, there is only one player who can 
+        have the ace, then he must play it."""
+        
+        card_constraints = {1: {"G7_", "S7_", "S8_", "S9_"},
+                            2: {"E7_", "E8_", "E9_", "S7_", "S8_", "S9_"},
+                            3: {"E7_", "E8_", "E9_", "EA_"}}
+        
+        number_constraints = {1:3, 2:3, 3:3}
+        game_mode = "Partner Eichel"
+        starting_suit = "Eichel"
+        result = filter_playable_cards(card_constraints, number_constraints, 3,
+                              starting_suit, game_mode)
+        expected = {"EA_"}
+        self.assertEqual(expected, result)
+        
+    def test_4(self):
+        """ If, when playing a partner game, there are multiple players who
+        may have the called ace, then one player is not obliged to play it."""
+        
+        card_constraints = {1: {"S7_", "S8_", "S9_"},
+                            2: {"E7_", "E8_", "EA_"},
+                            3: {"E7_", "E8_", "EA_"}}
+        
+        number_constraints = {1:3, 2:3, 3:3}
+        game_mode = "Partner Eichel"
+        starting_suit = "Eichel"
+        result = filter_playable_cards(card_constraints, number_constraints, 2,
+                              starting_suit, game_mode)
+        expected = {"E7_", "E8_", "EA_"}
+        self.assertEqual(expected, result)              
+
+    def test_5(self):
+        """ If, when playing a partner game, a player who may have the ace 
+        is allowed to come out, then they may not come out with cards of the
+        called suit, except the called ace."""
+        
+        card_constraints = {1: {"E7_", "E8_", "EA_", "S7_", "S8_", "S9_"},
+                            2: {"E7_", "E8_", "EA_", "S7_", "S8_", "S9_"},
+                            3: {"E7_", "E8_", "EA_", "S7_", "S8_", "S9_"}}
+        
+        number_constraints = {1:2, 2:2, 3:2}
+        game_mode = "Partner Eichel"
+        starting_suit = None
+        result = filter_playable_cards(card_constraints, number_constraints, 1,
+                              starting_suit, game_mode)
+        expected = {"S7_", "S8_", "S9_", "EA_"}
+        self.assertEqual(expected, result)
+        
+    def test_6(self):
+        """ If it is at all possible for a player to run away, then they
+        may do so."""
+        
+        card_constraints = {1: {"E7_", "E8_", "E9_", "EA_", "S7_", "S8_", "S9_"},
+                            2: {"S7_", "S8_", "S9_", "G7_", "G8_", "G9_", "G10"},
+                            3: {"S7_", "S8_", "S9_", "H7_", "H8_", "H9_", "H10"}}
+        
+        number_constraints = {1:5, 2:5, 3:5}
+        game_mode = "Partner Eichel"
+        starting_suit = None
+        result = filter_playable_cards(card_constraints, number_constraints, 1,
+                              starting_suit, game_mode)
+        expected = {"E7_", "E8_", "E9_", "EA_", "S7_", "S8_", "S9_"}
+        self.assertEqual(expected, result)
+
+    def test_7(self):
+        """ If there is a possibility that the current player may be free, 
+        then they may play any of their possible cards. """
+        
+        card_constraints = {1: {"E7_", "E8_", "EA_", "S7_", "S8_", "S9_"},
+                            2: {"E7_", "E8_", "EA_", "S7_", "S8_", "S9_"},
+                            3: {"E7_", "E8_", "EA_", "S7_", "S8_", "S9_"}}
+        
+        number_constraints = {1:2, 2:2, 3:2}
+        game_mode = "Partner Eichel"
+        starting_suit = "Eichel"
+        result = filter_playable_cards(card_constraints, number_constraints, 1,
+                              starting_suit, game_mode)
+        expected = {"E7_", "E8_", "EA_", "S7_", "S8_", "S9_"}
+        self.assertEqual(expected, result)  
+        
 if __name__ == "__main__":    
     unittest.main()

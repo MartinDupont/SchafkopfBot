@@ -76,6 +76,8 @@ PARTNER_GAMES = ['Partner Schellen', 'Partner Eichel', 'Partner Gras']
 GAME_MODE_TO_ACES = {'Partner Schellen': 'SA_', 'Partner Eichel': 'EA_',
                      'Partner Gras': 'GA_'}
 
+GAME_MODE_TO_SUITS = {'Partner Schellen': 'Schellen', 'Partner Eichel': 'Eichel',
+                     'Partner Gras': 'Gras'}
 
 GAME_PRIORITY = {'Herz Solo': 3, 'Gras Solo': 3, 'Eichel Solo': 3,
                  'Schellen Solo': 3, 'Wenz': 2, 'Partner Schellen': 1,
