@@ -466,7 +466,6 @@ class PartnerState(BaseState):
             matching_cards = hand
         
         # check if we're playing a partner game, and I have the called ace. 
-        # If we're not doing partner play, called_ace is None
         if called_ace in hand: 
             called_colour = suit_dictionary[called_ace]
             if current_round:

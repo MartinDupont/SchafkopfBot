@@ -72,7 +72,7 @@ SUITS_MAPPING = {'Wenz'            : reorder_dict(WENZ_SUITS),
                  'Ramsch'          : STANDARD_MAPPING}
  
 # ========================== Miscellaneous ================================== #
-       
+PARTNER_GAMES = ['Partner Schellen', 'Partner Eichel', 'Partner Gras']     
 GAME_MODE_TO_ACES = {'Partner Schellen': 'SA_', 'Partner Eichel': 'EA_',
                      'Partner Gras': 'GA_'}
 
@@ -182,9 +182,12 @@ def get_categories(game_mode):
             GRAS_SPATZEN,
             HERZ_SPATZEN,
             SCHELLEN_SPATZEN]
-
+# =============================== misc ====================================== #
 
 def make_play_order(i):
     return [(i + j) % 4 for j in range(4)]
+
+class CardCountingException(Exception):
+    pass
     
     

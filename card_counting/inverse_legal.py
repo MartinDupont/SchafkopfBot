@@ -26,10 +26,20 @@ def inverse_legal_moves(state, hand, p_id):
     starting_set = set(con.ALL_CARDS) - hand
     card_constraints = {p: set(starting_set) for p in other_players}
     number_constraints = {p: 8 for p in other_players}
-
     suits_mapping = con.SUITS_MAPPING[state.game_mode]
     # All other players start with all possible cards that are not in our hand.
     count = 0
+    
+    # ---------------- stuff to deal with running away ---------------------- #
+    if state.game_mode in con.PARTNER_GAMES:
+        check_for_running_away = True  # davonlaufen
+        called_ace = con.GAME_MODE_TO_ACES[state.game_mode]
+        called_suit = suits_mapping[called_ace]
+        remaining_cards_of_called_suit = 6
+        ace_was_played = False
+    else:
+        check_for_running_away = False
+    # ----------------------------------------------------------------------- #
     for p, card in state.player_card_tuples(state.history):
         if count == 0:
             starting_suit = suits_mapping[card]
@@ -44,8 +54,23 @@ def inverse_legal_moves(state, hand, p_id):
                 temp = {c for c in card_constraints[p] if  suits_mapping[c] != starting_suit}                
                 card_constraints[p] = temp
     
+        if check_for_running_away:
+            if suits_mapping[card] == called_suit:
+                remaining_cards_of_called_suit -= 1                
+            if starting_suit == called_suit:
+                if card == called_ace:
+                    ace_was_played = True
+                if count == 3 and not ace_was_played:
+                    # ran away. 
+                    player_who_ran = (p - 3) % 4
+                    check_for_running_away = False
+                    for p_2 in other_players:
+                        if p_2 != player_who_ran:
+                            card_constraints[p_2].discard(called_ace)
+                            if remaining_cards_of_called_suit == 3:
+                                temp = {c for c in card_constraints[p_2] if  suits_mapping[c] != called_suit} 
+                                card_constraints[p_2] = temp
         count = (count + 1) % 4     
-
     return card_constraints, number_constraints
 
 

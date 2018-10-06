@@ -54,8 +54,6 @@ and not just how many people played before him.
 	* Specify Arbitrary amounts of bots and players. 
 	* Graceful exit.
 
-# Do a writeup! Not just of which agent I use, but the card-distribution algorithm. 
-
 # Too much code duplication between PIMC and MCTS. Perhaps move back-up etc. into the nodes utilities or something?
 
 # Test by hand if this guy can even play a wenz.

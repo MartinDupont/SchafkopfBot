@@ -9,6 +9,7 @@ import unittest
 import random
 from card_counting import inverse_legal_moves, assign_hands, distribute_cards, propagate_constraints, filter_equivalent_cards
 from gamestate import GameState
+from constants import constants as con
 
 class inverseLegal(unittest.TestCase):
     """ Check that the function can correctly detect which cards cannot belong 
@@ -47,6 +48,49 @@ class inverseLegal(unittest.TestCase):
             possibility = self.card_constraints[key]
             value = set(value)
             self.assertTrue(value.issubset(possibility))
+
+    def test_davonlaufen_1(self):
+        """ Test if we can recognize if someone has run away."""
+        game_mode = "Partner Eichel"
+        state = GameState(game_mode = game_mode, offensive_player = 0, active=1)
+
+        fixed_history = ["E7_", "EK_", "H7_", "H8_"]
+        hand = ["EO_", "GO_", "SO_", "HO_", "EU_", "GU_", "HU_"]
+        for card in fixed_history:
+            state = state.result(card)
+        
+        remaining_cards = {c for c in con.ALL_CARDS if not c in (hand + fixed_history)}
+        expected = {1: remaining_cards,
+                    2: remaining_cards.difference({"EA_"}),
+                    3: remaining_cards.difference({"EA_", "E10", "E8_", "E9_"})}
+        
+        card_constraints, number_constraints = inverse_legal_moves(state, hand, 0)
+        
+        self.assertEqual(expected, card_constraints)
+            
+    def test_davonlaufen_2(self):
+        """ Test if we can recognize if someone has run away, and enough cards
+        of the called suit have been played such that we can conclude that the 
+        person who ran away has ALL of the remaining cards of the called suit. """
+        game_mode = "Partner Eichel"
+        state = GameState(game_mode = game_mode, offensive_player = 0, active=1)
+        called_suit = "Eichel"
+        suits_mapping = con.SUITS_MAPPING[game_mode]
+
+        fixed_history = ["E7_", "EK_", "E10", "H8_"]
+        hand = ["EO_", "GO_", "SO_", "HO_", "EU_", "GU_", "HU_"]
+        for card in fixed_history:
+            state = state.result(card)
+        
+        all_cards_except_eichel = {c for c in con.ALL_CARDS if suits_mapping[c] != called_suit}
+        remaining_cards_except_eichel = {c for c in all_cards_except_eichel if not (c in hand or c in fixed_history)}
+        expected = {1: remaining_cards_except_eichel | {"EA_", "E8_", "E9_"},
+                    2: remaining_cards_except_eichel,
+                    3: remaining_cards_except_eichel}
+        
+        card_constraints, number_constraints = inverse_legal_moves(state, hand, 0)
+        self.assertEqual(expected, card_constraints)
+        
 
 class constraintPropagation(unittest.TestCase):
     """ Check that my constraint propagation is working. Given a list of 
