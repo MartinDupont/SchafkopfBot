@@ -171,8 +171,6 @@ def filter_playable_cards(card_constraints, number_constraints, player, starting
             # This guy is the only guy who can have the ace. 
             return {called_ace}
         
-    # missing an IF here. if i have the called ace, and starting_suit != called_suit, 
-    # then I cannot play the called ace under any circumstances. 
     # NEED to refactor this. One logic for parnter games, another for the others.
         
     only_this_player_suit = {c for c in only_this_player_can_have if suits_mapping[c] == starting_suit}
