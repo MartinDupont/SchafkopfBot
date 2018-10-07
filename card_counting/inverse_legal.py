@@ -135,35 +135,45 @@ def filter_playable_cards(card_constraints, number_constraints, player, starting
     Despite not knowing exactly what cards they have, we can sometimes narrow
     down our choices for what they can and cannot play. This will handily
     reduce the size of the search tree."""
+    
+    card_constraints = {p: set(cards) for p, cards in card_constraints.items()}
     suits_mapping = con.SUITS_MAPPING[game_mode]
+    other_players = [p for p in card_constraints.keys() if p != player]
+    other_players_may_have = (card_constraints[other_players[0]] |
+                              card_constraints[other_players[1]])
+    only_this_player_can_have = card_constraints[player].difference(other_players_may_have)
     if game_mode in con.PARTNER_GAMES:
         called_ace = con.GAME_MODE_TO_ACES[game_mode]
         called_suit = con.GAME_MODE_TO_SUITS[game_mode]
         
     if starting_suit == None:
-        if game_mode in con.PARTNER_GAMES:
+        if game_mode in con.PARTNER_GAMES and called_ace in card_constraints[player]:
             n_cards_called_colour = sum(suits_mapping[c] == called_suit
                                          for c in card_constraints[player])
-            
-            if n_cards_called_colour < 4:
-                return {c for c in card_constraints[player] if 
-                        (c == called_ace) or (suits_mapping[c] != called_suit)}
-                # can open with the ace, but not any other card of the called
-                # colour, unless I run away. 
+            if called_ace in only_this_player_can_have or (
+                    number_constraints[player] == len(card_constraints[player])):
+                # combinatoric possibility is covered by this possibility if
+                # constraints are propagated. 
+
+                if n_cards_called_colour < 4:
+                    return {c for c in card_constraints[player] if 
+                            (c == called_ace) or (suits_mapping[c] != called_suit)}
+                    # can open with the ace, but not any other card of the called
+                    # colour, unless I run away. 
         return card_constraints[player]
     
     possible_cards_of_played_suit = {c for c in card_constraints[player] if
                                       suits_mapping[c] == starting_suit}
 
-    other_players = [p for p in card_constraints.keys() if p != player]
-    other_players_may_have = (card_constraints[other_players[0]] |
-                              card_constraints[other_players[1]])
-    only_this_player_can_have = card_constraints[player].difference(other_players_may_have)
 
     if game_mode in con.PARTNER_GAMES and starting_suit == called_suit:
         if called_ace in only_this_player_can_have:
             # This guy is the only guy who can have the ace. 
             return {called_ace}
+        
+    # missing an IF here. if i have the called ace, and starting_suit != called_suit, 
+    # then I cannot play the called ace under any circumstances. 
+    # NEED to refactor this. One logic for parnter games, another for the others.
         
     only_this_player_suit = {c for c in only_this_player_can_have if suits_mapping[c] == starting_suit}
     n_cards_possible = len(card_constraints[player])
@@ -176,4 +186,6 @@ def filter_playable_cards(card_constraints, number_constraints, player, starting
         return possible_cards_of_played_suit
     else:
         # There is a possibility that the player is free.
+        if game_mode in con.PARTNER_GAMES and starting_suit != called_suit:
+            return {c for c in card_constraints[player] if c != called_ace}
         return card_constraints[player]
