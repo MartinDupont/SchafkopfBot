@@ -57,3 +57,9 @@ and not just how many people played before him.
 # Too much code duplication between PIMC and MCTS. Perhaps move back-up etc. into the nodes utilities or something?
 
 # Tidy up my filter_playable_cards. It works, but it's ugly. 
+
+# so, filter_playable_cards STILL doesn't completely eliminate people from playing themselves into impossible situations. 
+	the best I can hope for is "try the action and see if it results in a solveable situation". This is inelegant, but it works. 
+	How about I move this test up as early as possible, so I can skip over the __init__?
+	I can put it in add_child. Also, solveability will not need to be checked if the bot plays, because this doesn't affect
+	his guesses of the other players cards. Will probably also need a refactor. 

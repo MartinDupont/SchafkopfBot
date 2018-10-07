@@ -479,7 +479,7 @@ class PartnerState(BaseState):
                 
             else: 
                 # If i am allowed to come out.
-                if len([card for card in hand if suit_dictionary[card] == called_colour]) >= 4:
+                if sum(suit_dictionary[card] == called_colour for card in hand) >= 4:
                     # can "run away" and not open with the ace. 
                     return hand
                 else:
