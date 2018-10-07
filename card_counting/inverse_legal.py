@@ -140,45 +140,40 @@ def filter_playable_cards(card_constraints, number_constraints, player, starting
         called_ace = con.GAME_MODE_TO_ACES[game_mode]
         called_suit = con.GAME_MODE_TO_SUITS[game_mode]
         
-    
     if starting_suit == None:
         if game_mode in con.PARTNER_GAMES:
-            cards_called_colour = {
-                    c for c in card_constraints[player] if suits_mapping[c] == called_suit}
-            n_cards_called_colour =  len(cards_called_colour)
+            n_cards_called_colour = sum(suits_mapping[c] == called_suit
+                                         for c in card_constraints[player])
             
             if n_cards_called_colour < 4:
-                allowed = {c for c in card_constraints[player] if 
-                           (c == called_ace) or (suits_mapping[c] != called_suit)}
-                return allowed
+                return {c for c in card_constraints[player] if 
+                        (c == called_ace) or (suits_mapping[c] != called_suit)}
                 # can open with the ace, but not any other card of the called
                 # colour, unless I run away. 
         return card_constraints[player]
     
-    
-    cards_remaining = set()
-    for card_set in card_constraints.values():
-        cards_remaining.update(card_set)
-    n_cards_possible = len(card_constraints[player])
-    cards_remaining_of_played_suit = {c for c in cards_remaining if suits_mapping[c] == starting_suit}
-    n_cards_of_played_suit = len(cards_remaining_of_played_suit)
-    
-    other_players = [p for p in card_constraints.keys() if not p == player]
-    if game_mode in con.PARTNER_GAMES:
-        if starting_suit == con.GAME_MODE_TO_SUITS[game_mode]:
-            if called_ace in card_constraints[player] and not any(
-                    called_ace in card_constraints[p] for p in other_players):
-                # This guy is the only guy who can have the ace. 
-                return {called_ace}
-    
-    only_this_player_can_have = card_constraints[player].difference(
-            card_constraints[other_players[0]]).difference(
-                    card_constraints[other_players[1]])
+    possible_cards_of_played_suit = {c for c in card_constraints[player] if
+                                      suits_mapping[c] == starting_suit}
+
+    other_players = [p for p in card_constraints.keys() if p != player]
+    other_players_may_have = (card_constraints[other_players[0]] |
+                              card_constraints[other_players[1]])
+    only_this_player_can_have = card_constraints[player].difference(other_players_may_have)
+
+    if game_mode in con.PARTNER_GAMES and starting_suit == called_suit:
+        if called_ace in only_this_player_can_have:
+            # This guy is the only guy who can have the ace. 
+            return {called_ace}
+        
     only_this_player_suit = {c for c in only_this_player_can_have if suits_mapping[c] == starting_suit}
-    
+    n_cards_possible = len(card_constraints[player])
+    n_cards_of_played_suit = len(possible_cards_of_played_suit)
     if (number_constraints[player] > n_cards_possible - n_cards_of_played_suit) or only_this_player_suit:
-        # There is no universe in which the player in question is free. 
-        return card_constraints[player].intersection(cards_remaining_of_played_suit)
+        # There is no universe in which the player in question is free.
+        # Either there is no combinatoric way of dealing him a hand without 
+        # a card of the played suit, or there is a card which only he may
+        # have which matches the suit. 
+        return possible_cards_of_played_suit
     else:
         # There is a possibility that the player is free.
         return card_constraints[player]

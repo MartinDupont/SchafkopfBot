@@ -56,4 +56,4 @@ and not just how many people played before him.
 
 # Too much code duplication between PIMC and MCTS. Perhaps move back-up etc. into the nodes utilities or something?
 
-# Test by hand if this guy can even play a wenz.
+# Tidy up my filter_playable_cards. It works, but it's ugly. 
