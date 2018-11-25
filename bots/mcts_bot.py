@@ -22,10 +22,11 @@ class MonteCarloBot(HeuristicBot):
     do not lead to impossible situations, such as players having played illegally. 
     (Except for davonlaufen, that's not implemented yet).
     """
-    def __init__(self):
+    def __init__(self, c = math.sqrt(2)):
         super().__init__()
         self.root_node = None
         self.player_id = None
+        self.c = c
         
 #    def play_or_not(self, i):
 #        return False
@@ -80,9 +81,12 @@ class MonteCarloBot(HeuristicBot):
  
 
     # ----------------------------------
-    def best_child(self, node, c=math.sqrt(2)):
+    def best_child(self, node, c=None):
         """ Calculates the formula for MCTS to find the child node with 
-        the highest probability of winning. """    
+        the highest probability of winning. """ 
+        
+        if c == None:
+            c = self.c
         best_action, best_node = max(node.children.items(),
                           key=lambda x: (x[1].Q / x[1].N) 
                           + (c * math.sqrt(2 * math.log(node.N) / x[1].N)))

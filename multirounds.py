@@ -42,7 +42,7 @@ if __name__ == "__main__":
         
     #botstring = ["MCTSPLUS", "PIMC", "MCTSPLUS", "PIMC" ]
     #bots_list = ["MCTSPLUS", "DUMB", "DUMB", "DUMB"]   
-    bots_list = ["MCTSPLUS", "PIMC", "DUMB", "DUMB"]
+    bots_list = [["MCTSPLUS", {}], ["PIMC", {"n_worlds":20}], ["DUMB", {}], ["DUMB", {}]]
     #bots_list = ["MCTSPLUS", "PIMC", "MCTSPLUS", "PIMC"]
     #bots_list = ["MCTSPLUS", "MCTSPLUS", "PIMC", "PIMC" ]
     #bots_list = ["PIMC", "PIMCTEST", "PIMC", "PIMCTEST"]

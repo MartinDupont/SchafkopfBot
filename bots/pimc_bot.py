@@ -18,10 +18,12 @@ class PerfectInformationMonteCarloBot(HeuristicBot):
     """ Follows a very straightfoward implementation of a perfect-information
     monte-carlo (PIMC):
     """
-    def __init__(self):
+    def __init__(self, c = math.sqrt(2), n_worlds = 8):
         super().__init__()
         self.root_node = None
         self.player_id = None
+        self.c = c
+        self.n_worlds = n_worlds
         
 #    def play_or_not(self, i):
 #        return False
@@ -73,17 +75,18 @@ class PerfectInformationMonteCarloBot(HeuristicBot):
  
 
     # ----------------------------------
-    def best_child(self, node, c=math.sqrt(2)):
+    def best_child(self, node, c=None):
         """ Calculates the formula for MCTS to find the child node with 
-        the highest probability of winning. """    
+        the highest probability of winning. """  
+        if c == None:
+            c = self.c
         best_action, best_node = max(node.children.items(),
                           key=lambda x: (x[1].Q / x[1].N) 
                           + (c * math.sqrt(2 * math.log(node.N) / x[1].N)))
         return best_node, best_action
     
-
-    
-    def play_card(self, state, n_worlds = 8):
+    def play_card(self, state):
+        n_worlds = self.n_worlds
         if len(state.actions(self.hand)) == 1:
             choice = state.actions(self.hand)[0]
             self.hand.remove(choice)

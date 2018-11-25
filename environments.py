@@ -22,17 +22,18 @@ class Arena:
     type of game they would like to play, then creates the appropriate GameState
     instance."""
     def __init__(self, bots_list, comes_out=0):
+        """ bots_list is a list of lists, [["PIMC", kwargs], ["DUMB", kwargs], ...] """
         self.agents = {}
         self.comes_out = comes_out
         if not(len(bots_list) == 4):
             raise ValueError("Please provide a string of bot names of length 4")
         
         # make a dictionary of agents and player instances
-        for i, bot_string in enumerate(bots_list):
+        for i, bot_params in enumerate(bots_list):
             try:
-                self.agents[i] = agents_dict[bot_string]()
+                self.agents[i] = agents_dict[bot_params[0]](**bot_params[1])
             except KeyError:
-                raise ValueError("{} is not a valid bot name".format(bot_string))
+                raise ValueError("{} is not a valid bot name".format(bot_params[0]))
                 
         self.deck = list(con.ALL_CARDS)
         self.points_totals = {0:0, 1:0, 2:0, 3:0}
