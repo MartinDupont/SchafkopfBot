@@ -63,3 +63,5 @@ and not just how many people played before him.
 	How about I move this test up as early as possible, so I can skip over the __init__?
 	I can put it in add_child. Also, solveability will not need to be checked if the bot plays, because this doesn't affect
 	his guesses of the other players cards. Will probably also need a refactor. 
+
+# PIMC, when it gets below 3 cards, really should just switch to brute-force. 
