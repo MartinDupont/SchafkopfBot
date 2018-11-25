@@ -11,7 +11,7 @@ from constants import constants as con
 
 class CheckArena(unittest.TestCase):
     def setUp(self):
-        self.bots_list = ["DUMB", "DUMB", "DUMB", "DUMB"]
+        self.bots_list = [["DUMB", {}], ["DUMB", {}], ["DUMB", {}], ["DUMB", {}]]
         self.arena = Arena(self.bots_list)
     
     def test_deal_cards(self):
